@@ -48,8 +48,8 @@ public:
 	int m_bind( struct sockaddr_in& sin);
 	int m_listen( int backlog);
 	int m_accept(struct sockaddr_in* cin);
-	int m_tcprecv();
-	int m_tcpsend();
+	int m_tcprecv(char *recvbuf, int len, int timeout);
+	int m_tcpsend(char *sendbuf, int len);
 private:
 	char *m_ip;
 	int m_port;

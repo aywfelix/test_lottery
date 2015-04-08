@@ -36,15 +36,13 @@ public:
 		m_ip = NULL;
 		delete m_recordfile;
 		m_recordfile = NULL;
-  		delete m_lotterynum;
-		m_lotterynum = NULL;
 	}
 	
 	int m_connect();
 	int m_setlotteryinter(int interval);
 	int m_setlotterynum(int num);
-	int m_tcprecv();
-	int m_tcpsend();
+	int m_tcprecv(char *recvbuf, int len, int timeout);
+	int m_tcpsend(char *sendbuf, int len);
 	
 };
 
