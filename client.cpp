@@ -1,6 +1,7 @@
 #include "client.h"
 
 int client::frame = 0; //static type must init here
+bool loginflag = false;
 int client::m_connect()
 {
 	struct sockaddr_in sin;
@@ -114,4 +115,94 @@ cout << crc << "----" << 22 + sndlen << endl;
 int ret = m_tcpsend(buf, 22+sndlen);
 	return ret;
 
+}
+
+void recvthrdfunc(void *arg)
+{
+	client *cli = (client*) arg;
+	int ret = 0, cmd = 0, len = 0;
+	unsigned short  crc;
+	char buf[1024];
+	char content[256];
+	do
+	{
+		while(1)
+		{
+			if(cli->m_socket < 0)
+			{
+				continue;
+			}
+
+			//paser the data  message
+			memset(buf, 0, sizeof(buf));
+			ret = cli->m_tcprecv( buf, 2, -1); //recv start data
+			if((ret != 2) || ((unsigned char)buf[0] != 0xFF) || ((unsigned char)buf[1] != 0xFF))
+			{
+				break;
+			}
+			// bzero(buf, sizeof(buf));
+			ret = cli->m_tcprecv( buf+2, 6, -1);  //recv source addr
+			if((ret != 6) || (strcmp(buf+2, "111111")!= 0))
+			{
+				break;
+			}
+			ret = cli->m_tcprecv( buf+8, 6, -1); //recv destination addr
+			if((ret != 6)||(strncmp(buf+8, "000000", 6) != 0))
+			{
+   				break;
+			}
+			ret = cli->m_tcprecv(buf+14, 2, -1); //recv cmd
+			if(ret != 2)
+			{
+				break;
+			}
+			cmd = (unsigned char)buf[14]*256 + (unsigned char)buf[15];	
+			ret = cli->m_tcprecv( buf+16, 2, -1); //recv message num
+			ret = cli->m_tcprecv( buf+18, 2, -1); //the length content
+			len = (unsigned char)buf[18]*256 + (unsigned char)buf[19];
+			ret = cli->m_tcprecv(buf+20, len+2, -1);  //the last data
+			crc = crc_check2(buf+2, len+18);
+			unsigned short crc2 = (unsigned char)buf[21 + len]*256 + (unsigned char)buf[22 + len];
+			// cout << crc <<"====" <<crc2 << endl;
+			// cout << 22 + len << endl;
+			// if(crc != crc2)
+			// {
+			// 	perror("crc error");
+			// 	return ;
+			// }
+			memcpy(content, buf+20, len);
+			cout << content << endl;
+			switch(cmd)
+			{
+			case 0x1000:
+				cli->varyloginOK(content);
+				break;
+			default:
+				break;
+			}
+			sleep(2);
+		}
+	
+	} while (1);
+	
+}
+
+void client::m_recvthrdstart(client* cli)
+{
+	thread_create(&pid, (void*)recvthrdfunc, cli, 1);
+}
+
+void client::varyloginOK(char * buf)
+{
+	string login = buf;
+	if(login == "login ok")
+	{
+		loginflag = true;
+	}
+	else
+	{
+	    loginflag = false;
+		close(m_socket);
+		m_socket = -1;
+	}
 }

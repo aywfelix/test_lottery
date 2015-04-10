@@ -27,6 +27,7 @@ class server
 {
 public:
 
+	static int frame;
 	server(char *ip, int port):m_ip(ip), m_port(port)
 	{
 		if(m_ip == NULL || m_port <0)
@@ -57,6 +58,7 @@ public:
 	void m_getpocketpoll();
 	void m_recvthrdstart();
 	void m_play(int* array);
+	//	int m_loginOK();
 	friend void recvthrdfunc(void *arg);
     friend int m_varylogin(char *buf, map<string, string>* userpwd);
 private:
@@ -73,4 +75,4 @@ private:
 
 int	m_tcprecv(int m_socket, char *recvbuf, int len, int timeout);
 int m_tcpsend(int m_socket, char *sendbuf, int len);
-
+int m_loginOK();

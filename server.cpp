@@ -1,6 +1,7 @@
 #include "server.h"
 
 int clisock = -1;
+int server::frame = 0;
 void server::m_setaddr(struct sockaddr_in &sin)
 {
 	// struct sockaddr_in sin;
@@ -149,7 +150,10 @@ int m_varylogin(char * buf, map<string, string>* userpwd)
 		}
 	}
 	if(flag)
+	{
 		cout << "login success\n";   //登录成功或失败给客户端发消息
+		m_loginOK();
+	}
 	else
 	{
 		cout << "login error\n";
@@ -334,5 +338,36 @@ void server::m_play(int* array)
 		}
 		array[i] = vec[pos];
 	}
+
+}
+
+int m_loginOK()
+{
+	int cmd = 0x1000;
+	char buf[256];
+	string login = "login ok";
+	char *snd = const_cast<char*>(login.c_str());
+	int sndlen = strlen(snd);
+	memset(buf, 0, 256);
+	buf[0] = 0xff;
+	buf[1] = 0xff;
+	memcpy(buf+2, "111111", 6);
+	memcpy(buf+8, "000000", 6);
+    buf[14] = cmd / 256;
+    buf[15] = cmd % 256;
+	if(server::frame >= 65535)
+		server::frame = 0;
+    buf[16] = server::frame / 256;
+	buf[17] = server::frame % 256;
+    buf[18] = sndlen / 256;
+    buf[19] = sndlen % 256;
+    memcpy(buf+20, snd, sndlen);
+
+    unsigned short crc = crc_check2(buf+2, 18+sndlen);
+	buf[21+sndlen] = crc / 256;
+	buf[22 + sndlen] = crc % 256;
+	cout << crc << "----" << 22 + sndlen << endl;
+	int ret = m_tcpsend(clisock, buf, 22+sndlen);
+	return ret;
 
 }

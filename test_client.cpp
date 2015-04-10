@@ -10,11 +10,10 @@ int main(int argc, char *argv[])
     const char *ip = servip.c_str();
 	int port = atoi(servport.c_str());
 	client cli(const_cast<char*>(ip), port, 0, 0, NULL, NULL);
-	cout << string(ip) << " " << port << endl;
+	cli.m_recvthrdstart(&cli);
 	while(1)
 	{
 		ret = cli.m_connect();
-		cout << "cli:"<<ret <<endl;
 		if(ret == 0)
 		{
 			break;
@@ -32,10 +31,13 @@ int main(int argc, char *argv[])
 		if(ret < 0)
 		{
 			cout << "login send error\n";
+			continue;
 		}
-		sleep(3);
+		sleep(1);
+		if(loginflag)
+		{break;}
 	}while(1);
-	cout << "client init ok\n";
+	
 	string line;
 	getline(cin, line);
     return 0;
