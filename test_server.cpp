@@ -13,8 +13,10 @@ int main(int argc, char *argv[])
 	serv.m_setparameters();
 	serv.m_bind(sin);
 	serv.m_listen(10);
+	serv.m_readuser("./config/userlist");
+	serv.m_recvthrdstart(); //start thread to recv client data
     cout << "server start to accept client...\n";
-	int clisock = 0;
+	int clisock = -1;
 	do
 	{
 		clisock = serv.m_accept(&cin);
@@ -24,6 +26,7 @@ int main(int argc, char *argv[])
 			break;
 		}
 		cout << "client connect server:"<<clisock << string(inet_ntoa(cin.sin_addr)) << endl;
+
 	} while (1);
 	
     return 0;

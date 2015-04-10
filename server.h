@@ -18,11 +18,15 @@
 #include <unistd.h>
 #include <errno.h>
 #include <arpa/inet.h>
+#include <vector>
+#include <map>
+#include <sstream>
 
 //默认服务器端 ip 127.0.0.1 port 9999
 class server
 {
 public:
+
 	server(char *ip, int port):m_ip(ip), m_port(port)
 	{
 		if(m_ip == NULL || m_port <0)
@@ -36,7 +40,7 @@ public:
 			cout << "create socket error\n";
 			return;
 		}
-	
+		mutex_init(&m_mutex);
 	}
 	~server()
 	{
@@ -48,13 +52,21 @@ public:
 	int m_bind( struct sockaddr_in& sin);
 	int m_listen( int backlog);
 	int m_accept(struct sockaddr_in* cin);
-	int m_tcprecv(char *recvbuf, int len, int timeout);
-	int m_tcpsend(char *sendbuf, int len);
+	int m_readuser(const string userfile);
+	void m_recvthrdstart();
+	friend void recvthrdfunc(void *arg);
+    friend int m_varylogin(char *buf, map<string, string>* userpwd);
 private:
 	char *m_ip;
 	int m_port;
 	int m_socket;
+	map<string, string> userpwd; //保存用户名和密码,密码暂用明文
 	char recvbuf[1024];
 	char sendbuf[1024];
+	pthread_t m_pid;
+	pthread_mutex_t m_mutex;
 };
+
+int	m_tcprecv(int m_socket, char *recvbuf, int len, int timeout);
+int m_tcpsend(int m_socket, char *sendbuf, int len);
 

@@ -1,4 +1,6 @@
 #include "server.h"
+
+int clisock = -1;
 void server::m_setaddr(struct sockaddr_in &sin)
 {
 	// struct sockaddr_in sin;
@@ -46,7 +48,7 @@ int server::m_listen( int backlog)
 int server::m_accept(struct sockaddr_in* cin)
 {
 	socklen_t socklen = sizeof(cin);
-	int clisock = 0;
+    // int clisock = 0;
     clisock = accept(m_socket, (struct sockaddr*)cin, &socklen);
 	if(clisock <0)
 	{
@@ -56,7 +58,7 @@ int server::m_accept(struct sockaddr_in* cin)
 	return clisock;
 }
 
-int server::m_tcprecv(char *recvbuf, int len, int timeout)
+int m_tcprecv(int m_socket, char *recvbuf, int len, int timeout)
 {
 	if(NULL == recvbuf || len <=0 )
 		return -1;
@@ -86,10 +88,9 @@ int server::m_tcprecv(char *recvbuf, int len, int timeout)
 	}
 
 	return (ret > 0)?ret :-2;
-
 }
 
-int server::m_tcpsend(char *sendbuf, int len)
+int m_tcpsend(int m_socket, char *sendbuf, int len)
 {
 	if(NULL == sendbuf || len <=0)
 		return -1;
@@ -112,5 +113,128 @@ int server::m_tcpsend(char *sendbuf, int len)
 		data_left = len - send_tol;
    	}
 	return send_tol;
-
 }
+
+int server::m_readuser(const string userfile)
+{
+	ifstream infile(userfile.c_str(), ifstream::in);
+	if(!infile)
+	{
+		cout <<__FILE__<<__LINE__<< ":open file error\n";
+		return -1;
+	}
+	string username, passwd;
+	string record;
+	while(getline(infile, record))
+	{
+		istringstream isstream(record);
+		isstream >> username >> passwd ;
+		userpwd.insert(pair<string, string>(username, passwd));
+	}
+}
+
+int m_varylogin(char * buf, map<string, string>* userpwd)
+{	
+    string content = string(buf);
+	int pos = content.find("|");
+	string username = content.substr(0, pos);
+	string passwd = content.substr(pos+1);
+	bool flag = false;
+	for(map<string, string>::iterator mapite = (*userpwd).begin(); mapite != (*userpwd).end(); ++mapite)
+	{
+		if(mapite->first == username && mapite->second == passwd)
+		{
+			flag = true;
+			break;
+		}
+	}
+	if(flag)
+		cout << "login success\n";   //登录成功或失败给客户端发消息
+	else
+	{
+		cout << "login error\n";
+		close(clisock);
+		clisock = -1;
+		return -1;
+	}
+	return 0;
+}
+
+void recvthrdfunc(void *arg)
+{
+	map<string, string>* userpwd = (map<string, string>*)arg;
+	int ret = 0, cmd = 0, len = 0;
+	unsigned short  crc;
+	char buf[1024];
+	char content[256];
+	do
+	{
+		while(1)
+		{
+			if(clisock < 0)
+			{
+				continue;
+			}
+			//paser the data  message
+			memset(buf, 0, sizeof(buf));
+			ret = m_tcprecv(clisock, buf, 2, -1); //recv start data
+			if((ret != 2) || ((unsigned char)buf[0] != 0xFF) || ((unsigned char)buf[1] != 0xFF))
+			{
+				break;
+			}
+			// bzero(buf, sizeof(buf));
+			ret = m_tcprecv(clisock, buf+2, 6, -1);  //recv source addr
+			if((ret != 6) || (strcmp(buf+2, "000000")!= 0))
+			{
+				break;
+			}
+			ret = m_tcprecv(clisock, buf+8, 6, -1); //recv destination addr
+			if((ret != 6)||(strncmp(buf+8, "111111", 6) != 0))
+			{
+				cout << "2222\n";
+				break;
+			}
+			ret = m_tcprecv(clisock, buf+14, 2, -1); //recv cmd
+			if(ret != 2)
+			{
+				cout << "1111\n";
+				break;
+			}
+			cmd = (unsigned char)buf[14]*256 + (unsigned char)buf[15];	
+			ret = m_tcprecv(clisock, buf+16, 2, -1); //recv message num
+			ret = m_tcprecv(clisock, buf+18, 2, -1); //the length content
+			len = (unsigned char)buf[18]*256 + (unsigned char)buf[19];
+			ret = m_tcprecv(clisock, buf+20, len+2, -1);  //the last data
+			crc = crc_check2(buf+2, len+18);
+			unsigned short crc2 = (unsigned char)buf[21 + len]*256 + (unsigned char)buf[22 + len];
+			// cout << crc <<"====" <<crc2 << endl;
+			// cout << 22 + len << endl;
+			// if(crc != crc2)
+			// {
+			// 	perror("crc error");
+			// 	return ;
+			// }
+			memcpy(content, buf+20, len);
+			cout << content << endl;
+			switch(cmd)
+			{
+			case 0x0001:
+				m_varylogin(content, userpwd);
+				break;
+			default:
+				break;
+			}
+			sleep(2);
+		}
+	
+	} while (1);
+	cout << "server recv error\n";
+	// close(clisock);
+	// clisock = -1;
+}
+
+void server::m_recvthrdstart()
+{
+	thread_create(&m_pid, (void*)recvthrdfunc, &userpwd, 1);
+}
+

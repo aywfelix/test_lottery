@@ -1,6 +1,7 @@
 CC = gcc
 CXX = g++
-CFLAGS = -Wall -g -o2
+#CFLAGS = -g -lstdc++ -Wall -o2
+CFLAGS = -g
 LDFLAGS = -lpthread 
 TARGET: test_client test_server
 all: $(TARGET)
@@ -11,15 +12,16 @@ all: $(TARGET)
 # test_server2: lib_net.o lib_thread.o lib_public.o lib_file.o test_server2.o
 # 		$(CXX) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 test_server: util.o server.o test_server.o
-		$(CXX) $(CFLAGS) -o $@ $^
+		$(CXX) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 test_server.o:
-		$(CXX) -c test_server.cpp
+		$(CXX) $(CFLAGS) -c test_server.cpp $(LDFLAGS)
+
 test_client: util.o client.o test_client.o
-		$(CXX) $(CFLAGS) -o $@ $^
+		$(CXX) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 test_client.o:
-		$(CXX) -c test_client.cpp
+		$(CXX) $(CFLAGS) -c test_client.cpp
 
 .c.o:
-		$(CXX) -c $< 
+		$(CXX) $(CFLAGS) -c $< 
 clean:
 		rm *.o $(TARGET)
