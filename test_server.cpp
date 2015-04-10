@@ -8,6 +8,9 @@ int main(int argc, char *argv[])
 	int port = atoi(sport.c_str());
 	// cout << sip << " "<<sport <<endl;
     server serv(const_cast<char*>(ip), port);
+	serv.m_getpocketpoll();
+	int arr[4];
+	serv.m_play(arr);
     struct sockaddr_in sin, cin;
 	serv.m_setaddr(sin);
 	serv.m_setparameters();

@@ -41,6 +41,7 @@ public:
 			return;
 		}
 		mutex_init(&m_mutex);
+		vec.resize(100);
 	}
 	~server()
 	{
@@ -53,7 +54,9 @@ public:
 	int m_listen( int backlog);
 	int m_accept(struct sockaddr_in* cin);
 	int m_readuser(const string userfile);
+	void m_getpocketpoll();
 	void m_recvthrdstart();
+	void m_play(int* array);
 	friend void recvthrdfunc(void *arg);
     friend int m_varylogin(char *buf, map<string, string>* userpwd);
 private:
@@ -61,6 +64,7 @@ private:
 	int m_port;
 	int m_socket;
 	map<string, string> userpwd; //保存用户名和密码,密码暂用明文
+	vector<int> vec; //pocket pool
 	char recvbuf[1024];
 	char sendbuf[1024];
 	pthread_t m_pid;

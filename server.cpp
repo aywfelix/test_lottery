@@ -237,4 +237,102 @@ void server::m_recvthrdstart()
 {
 	thread_create(&m_pid, (void*)recvthrdfunc, &userpwd, 1);
 }
+//得到按照一定 概率生成的vctor
+void server::m_getpocketpoll()
+{
+	int a1[9] = {1,1,1,1,1,1,1,1,1};
+	int a2[12] = {2,2,2,2,2,2,2,2,2,2,2,2};
+	int a3[5] = {3,3,3,3,3};
+	int a4[4] = {4,4,4,4};
+	int a5[8] = {5,5,5,5,5,5,5,5};
+	int a6[15] = {6,6,6,6,6,6,6,6,6,6,6,6,6,6,6};
+	int a7[7] = {7,7,7,7,7,7,7};
+	int a8[13] = {8,8,8,8,8,8,8,8,8,8,8,8,8};
+	int a9[6] = {9,9,9,9,9,9};
+	int a10[3] = {10,10,10};
+	int a11[10] = {11,11,11,11,11,11,11,11,11,11};
+	int a12[8] = {12,12,12,12,12,12,12,12};
 
+	vector<int> vvec(100,0);
+	memcpy(&vvec[0], &a1[0], 9*sizeof(int));
+   	memcpy(&vvec[9], &a2[0], 12*sizeof(int));
+	memcpy(&vvec[21], &a3[0], 5*sizeof(int));
+	memcpy(&vvec[26], &a4[0], 4*sizeof(int));
+	memcpy(&vvec[30], &a5[0], 8*sizeof(int));
+	memcpy(&vvec[38], &a6[0], 15*sizeof(int));
+	memcpy(&vvec[53], &a7[0], 7*sizeof(int));
+	memcpy(&vvec[60], &a8[0], 13*sizeof(int));
+	memcpy(&vvec[73], &a9[0], 6*sizeof(int));
+	memcpy(&vvec[79], &a10[0], 3*sizeof(int));
+	memcpy(&vvec[82], &a11[0], 10*sizeof(int));
+	memcpy(&vvec[92], &a12[0], 8*sizeof(int));
+
+    // vvec.assign(&a1[0], &a1[9]);
+	// for(int i=0;i != 100; ++i)
+	// {
+	// 	cout << vvec[i] << " ";
+	// }
+	// cout<<"\n"<< vvec.size();
+	// cout<<"----------"<<endl;
+	int t=0, tmp, p;
+	srand(unsigned(time(NULL)));
+	for(int i = 0; i< 100; ++i)
+	{
+		t = int(random(0, 101));
+		if(vec[t] == 0)
+		{
+		   vec[t] = vvec[i];
+		}
+		else
+		{
+			p = t;
+			tmp = vvec[i];
+			while(++t && t < 100)
+			{
+				if(vec[t] == 0)
+				{
+					vec[t] = tmp;
+					break;
+				}
+				else
+					continue;
+						
+			}
+			while(t == 100 && (--p >= 0))
+			{
+				if(vec[p] == 0)
+				{
+					vec[p] = tmp;
+					break;
+				}
+				else
+					continue;
+						
+			}
+		}
+		
+	}
+
+	// for(int i=0;i != 100; ++i)
+	// {
+	// 	cout << vec[i] << " ";
+	// }
+	// cout<<"\n"<< vec.size();
+    // cout << "\n---------------\n";
+}
+
+void server::m_play(int* array)
+{
+	//get four number from vector by random
+	int pos;
+	for(int i=0;i < 4;++i)
+	{
+		pos = int(random(0, 101));
+		while(vec[pos] ==0) //这个bug以后在该
+		{
+			pos = int(random(0, 101));
+		}
+		array[i] = vec[pos];
+	}
+
+}

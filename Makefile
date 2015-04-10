@@ -3,7 +3,7 @@ CXX = g++
 #CFLAGS = -g -lstdc++ -Wall -o2
 CFLAGS = -g
 LDFLAGS = -lpthread 
-TARGET: test_client test_server
+TARGET: test_client test_server test
 all: $(TARGET)
 
 # test_client: lib_net.o lib_public.o test_client.o
@@ -20,6 +20,9 @@ test_client: util.o client.o test_client.o
 		$(CXX) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 test_client.o:
 		$(CXX) $(CFLAGS) -c test_client.cpp
+
+test: util.o test.o
+		$(CXX) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 .c.o:
 		$(CXX) $(CFLAGS) -c $< 
