@@ -23,7 +23,7 @@ int client::m_setlotteryinter(int interval)
 {
 	m_lotteryinterval = interval;
 }
-int client::m_setlotterynum(int num)
+int client::m_setlottnum(int num)
 {
 	m_lotterynum = num;
 }
@@ -111,10 +111,72 @@ int client::m_loginserver(int cmd, const string& username, const string& passwd)
     unsigned short crc = crc_check2(buf+2, 18+sndlen);
 	buf[21+sndlen] = crc / 256;
 	buf[22 + sndlen] = crc % 256;
-cout << crc << "----" << 22 + sndlen << endl;
+// cout << crc << "----" << 22 + sndlen << endl;
 int ret = m_tcpsend(buf, 22+sndlen);
 	return ret;
 
+}
+
+int client::m_setLottery(int cmd, const string& num, const string& timeval)
+{
+	//	int cmd = 0x0002;
+    char buf[256];
+	memset(buf, 0, 256);
+	string s = num + "|" + timeval;
+	char *snd = const_cast<char*>(s.c_str());
+	trim(snd);
+	int sndlen = strlen(snd);
+	buf[0] = 0xff;
+	buf[1] = 0xff;
+	memcpy(buf+2, "000000", 6);
+	memcpy(buf+8, "111111", 6);
+    buf[14] = cmd / 256;
+    buf[15] = cmd % 256;
+	if(client::frame >= 65535)
+		client::frame = 0;
+    buf[16] = client::frame / 256;
+	buf[17] = client::frame % 256;
+    buf[18] = sndlen / 256;
+    buf[19] = sndlen % 256;
+    memcpy(buf+20, snd, sndlen);
+
+    unsigned short crc = crc_check2(buf+2, 18+sndlen);
+	buf[21+sndlen] = crc / 256;
+	buf[22 + sndlen] = crc % 256;
+	// cout << crc << "----" << 22 + sndlen << endl;
+	int ret = m_tcpsend(buf, 22+sndlen);
+	return ret;
+	
+}
+
+int client::m_getLottery(int cmd)
+{
+	//	int cmd = 0x0002;
+    char buf[256];
+	memset(buf, 0, 256);
+	char *snd = '\0';
+	int sndlen = 0;
+	buf[0] = 0xff;
+	buf[1] = 0xff;
+	memcpy(buf+2, "000000", 6);
+	memcpy(buf+8, "111111", 6);
+    buf[14] = cmd / 256;
+    buf[15] = cmd % 256;
+	if(client::frame >= 65535)
+		client::frame = 0;
+    buf[16] = client::frame / 256;
+	buf[17] = client::frame % 256;
+    buf[18] = sndlen / 256;
+    buf[19] = sndlen % 256;
+    memcpy(buf+20, snd, sndlen);
+
+    unsigned short crc = crc_check2(buf+2, 18+sndlen);
+	buf[21+sndlen] = crc / 256;
+	buf[22 + sndlen] = crc % 256;
+	// cout << crc << "----" << 22 + sndlen << endl;
+	int ret = m_tcpsend(buf, 22+sndlen);
+	return ret;
+	
 }
 
 void recvthrdfunc(void *arg)
@@ -132,9 +194,9 @@ void recvthrdfunc(void *arg)
 			{
 				continue;
 			}
-
 			//paser the data  message
 			memset(buf, 0, sizeof(buf));
+			memset(content, 0, sizeof(content));
 			ret = cli->m_tcprecv( buf, 2, -1); //recv start data
 			if((ret != 2) || ((unsigned char)buf[0] != 0xFF) || ((unsigned char)buf[1] != 0xFF))
 			{
@@ -171,16 +233,20 @@ void recvthrdfunc(void *arg)
 			// 	return ;
 			// }
 			memcpy(content, buf+20, len);
-			cout << content << endl;
+			//			cout << content << endl;
 			switch(cmd)
 			{
-			case 0x1000:
+			case 0x1001:
 				cli->varyloginOK(content);
 				break;
+			case 0x1002:
+			    cli->varysetlotOK(content);
+			case 0x1003:
+				cli->varygetlottery(content);
 			default:
 				break;
 			}
-			sleep(2);
+
 		}
 	
 	} while (1);
@@ -205,4 +271,30 @@ void client::varyloginOK(char * buf)
 		close(m_socket);
 		m_socket = -1;
 	}
+}
+
+void client::varysetlotOK(char * buf)
+{
+	string login = buf;
+	if(login == "set ok")
+	{
+		cout << "set lottery OK\n";
+	}
+	else
+	{
+		cout << "set lottery error\n";
+	}
+}
+
+void client::varygetlottery(char *buf)
+{
+	cout << buf << endl;
+	string s = buf;
+	ofstream outfile("./record", ofstream::out|ofstream::app);
+	if(!outfile)
+		cout << "open record file error\n";
+	outfile<< s <<endl;
+	outfile.clear();
+	outfile.close();
+	cout << "get lottery ok\n";
 }

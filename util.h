@@ -17,7 +17,7 @@
 #include <ctime>
 #include <cstdlib>
 #include <pthread.h>
-
+#include <string>
 using namespace std;
 using std::string;
 
@@ -32,7 +32,10 @@ extern int mutex_lock(pthread_mutex_t *mutex);
 extern int mutex_unlock(pthread_mutex_t *mutex);
 extern unsigned short crc_check(char *pbuf,unsigned int len);
 extern unsigned short crc_check2(char *start, unsigned int len);
-// extern void ltrim(std::basic_string<char*>& str);
-// extern void rtrim(std::basic_string<char*>& str);
-// extern void trim(std::basic_string<char*>& str);
+extern void ltrim(string& str);
+extern void rtrim(string& str);
+extern void trim(string& str);
 extern char *trim(char *str);
+extern char* lib_time_now(char *outtime, int flag);
+extern string num2str(int num);
+extern int str2num(string& s);

@@ -39,12 +39,16 @@ public:
 	
 	int m_connect();
 	int m_setlotteryinter(int interval);
-	int m_setlotterynum(int num);
+	int m_setlottnum(int num);
 	int m_tcprecv(char *recvbuf, int len, int timeout);
 	int m_tcpsend(char *sendbuf, int len);
 	int m_loginserver(int cmd, const string& username, const string& passwd);
+	int m_getLottery(int cmd);
+	void varygetlottery(char *buf);
 	void m_recvthrdstart(client* cli);
 	void varyloginOK(char * buf);
+	void varysetlotOK(char *buf);
+	int m_setLottery(int cmd, const string& num, const string& timeval);
 friend void recvthrdfunc(void *arg);
 private:
 	char *m_ip;

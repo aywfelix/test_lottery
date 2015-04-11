@@ -28,6 +28,9 @@ class server
 public:
 
 	static int frame;
+	map<string, string> userpwd; //保存用户名和密码,密码暂用明文
+	int lotterynum;
+	int lotteryinterval;
 	server(char *ip, int port):m_ip(ip), m_port(port)
 	{
 		if(m_ip == NULL || m_port <0)
@@ -41,6 +44,7 @@ public:
 			cout << "create socket error\n";
 			return;
 		}
+
 		mutex_init(&m_mutex);
 		vec.resize(100);
 	}
@@ -56,16 +60,17 @@ public:
 	int m_accept(struct sockaddr_in* cin);
 	int m_readuser(const string userfile);
 	void m_getpocketpoll();
-	void m_recvthrdstart();
+	void m_recvthrdstart(server* serv);
 	void m_play(int* array);
-	//	int m_loginOK();
+	int	m_tcprecv(int m_socket, char *recvbuf, int len, int timeout);
+	int m_tcpsend(int m_socket, char *sendbuf, int len);
+
 	friend void recvthrdfunc(void *arg);
-    friend int m_varylogin(char *buf, map<string, string>* userpwd);
+    
 private:
 	char *m_ip;
 	int m_port;
 	int m_socket;
-	map<string, string> userpwd; //保存用户名和密码,密码暂用明文
 	vector<int> vec; //pocket pool
 	char recvbuf[1024];
 	char sendbuf[1024];
@@ -73,6 +78,9 @@ private:
 	pthread_mutex_t m_mutex;
 };
 
-int	m_tcprecv(int m_socket, char *recvbuf, int len, int timeout);
-int m_tcpsend(int m_socket, char *sendbuf, int len);
-int m_loginOK();
+extern int clisock;
+int m_loginOK(server* serv);
+int setlottery(char* buf, server* serv);
+int m_varylogin(char *buf, server* serv);
+int setLotteryOK(server* serv);
+int lotterytoclient(int* array, server* serv);

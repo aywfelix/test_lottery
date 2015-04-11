@@ -59,7 +59,7 @@ int server::m_accept(struct sockaddr_in* cin)
 	return clisock;
 }
 
-int m_tcprecv(int m_socket, char *recvbuf, int len, int timeout)
+int server::m_tcprecv(int m_socket, char *recvbuf, int len, int timeout)
 {
 	if(NULL == recvbuf || len <=0 )
 		return -1;
@@ -91,7 +91,7 @@ int m_tcprecv(int m_socket, char *recvbuf, int len, int timeout)
 	return (ret > 0)?ret :-2;
 }
 
-int m_tcpsend(int m_socket, char *sendbuf, int len)
+int server::m_tcpsend(int m_socket, char *sendbuf, int len)
 {
 	if(NULL == sendbuf || len <=0)
 		return -1;
@@ -134,8 +134,8 @@ int server::m_readuser(const string userfile)
 	}
 }
 
-int m_varylogin(char * buf, map<string, string>* userpwd)
-{	
+int m_varylogin(char * buf, server* serv)
+{	map<string, string>* userpwd = &(serv->userpwd);
     string content = string(buf);
 	int pos = content.find("|");
 	string username = content.substr(0, pos);
@@ -152,7 +152,7 @@ int m_varylogin(char * buf, map<string, string>* userpwd)
 	if(flag)
 	{
 		cout << "login success\n";   //登录成功或失败给客户端发消息
-		m_loginOK();
+		m_loginOK(serv);
 	}
 	else
 	{
@@ -164,9 +164,41 @@ int m_varylogin(char * buf, map<string, string>* userpwd)
 	return 0;
 }
 
+int m_setlottery(char * buf, server* serv)
+{
+	string s = buf;
+	string lotnum = s.substr(0, s.find_first_of("|"));
+	string interval = s.substr(s.find_first_of("|")+1);
+    serv->lotterynum = str2num(lotnum);
+	serv->lotteryinterval = str2num(interval);
+	if(serv->lotterynum > 0)
+	{
+		cout<<"set lotterynum ok\n";
+		setLotteryOK(serv);	
+	}
+}
+
+int m_sendlottery(char* buf, server* serv)
+{
+	int array[4];
+	for(int i=0;i< serv->lotterynum; ++i)
+	{
+		serv->m_play(array);
+	  	sleep(serv->lotteryinterval); //set the time interval about the game
+		//show in server terminal
+		for(int i=0; i< 4;++i)
+			cout << array[i] << " ";
+		cout << endl;
+		{
+			lotterytoclient(array, serv);
+		}
+	}
+	
+}
+
 void recvthrdfunc(void *arg)
 {
-	map<string, string>* userpwd = (map<string, string>*)arg;
+	server *serv = (server*)arg;
 	int ret = 0, cmd = 0, len = 0;
 	unsigned short  crc;
 	char buf[1024];
@@ -181,34 +213,32 @@ void recvthrdfunc(void *arg)
 			}
 			//paser the data  message
 			memset(buf, 0, sizeof(buf));
-			ret = m_tcprecv(clisock, buf, 2, -1); //recv start data
+			memset(content, 0, sizeof(content));
+			ret = serv->m_tcprecv(clisock, buf, 2, -1); //recv start data
 			if((ret != 2) || ((unsigned char)buf[0] != 0xFF) || ((unsigned char)buf[1] != 0xFF))
 			{
 				break;
 			}
-			// bzero(buf, sizeof(buf));
-			ret = m_tcprecv(clisock, buf+2, 6, -1);  //recv source addr
+			ret = serv->m_tcprecv(clisock, buf+2, 6, -1);  //recv source addr
 			if((ret != 6) || (strcmp(buf+2, "000000")!= 0))
 			{
 				break;
 			}
-			ret = m_tcprecv(clisock, buf+8, 6, -1); //recv destination addr
+			ret = serv->m_tcprecv(clisock, buf+8, 6, -1); //recv destination addr
 			if((ret != 6)||(strncmp(buf+8, "111111", 6) != 0))
 			{
-				cout << "2222\n";
-				break;
+  				break;
 			}
-			ret = m_tcprecv(clisock, buf+14, 2, -1); //recv cmd
+			ret = serv->m_tcprecv(clisock, buf+14, 2, -1); //recv cmd
 			if(ret != 2)
 			{
-				cout << "1111\n";
 				break;
 			}
 			cmd = (unsigned char)buf[14]*256 + (unsigned char)buf[15];	
-			ret = m_tcprecv(clisock, buf+16, 2, -1); //recv message num
-			ret = m_tcprecv(clisock, buf+18, 2, -1); //the length content
+			ret = serv->m_tcprecv(clisock, buf+16, 2, -1); //recv message num
+			ret = serv->m_tcprecv(clisock, buf+18, 2, -1); //the length content
 			len = (unsigned char)buf[18]*256 + (unsigned char)buf[19];
-			ret = m_tcprecv(clisock, buf+20, len+2, -1);  //the last data
+			ret = serv->m_tcprecv(clisock, buf+20, len+2, -1);  //the last data
 			crc = crc_check2(buf+2, len+18);
 			unsigned short crc2 = (unsigned char)buf[21 + len]*256 + (unsigned char)buf[22 + len];
 			// cout << crc <<"====" <<crc2 << endl;
@@ -219,16 +249,21 @@ void recvthrdfunc(void *arg)
 			// 	return ;
 			// }
 			memcpy(content, buf+20, len);
-			cout << content << endl;
+			// cout << content << endl;
 			switch(cmd)
 			{
 			case 0x0001:
-				m_varylogin(content, userpwd);
+				m_varylogin(content, serv);
+				break;
+			case 0x0002:
+				m_setlottery(content, serv);
+				break;
+			case 0x0003:
+				m_sendlottery(content, serv);
 				break;
 			default:
 				break;
 			}
-			sleep(2);
 		}
 	
 	} while (1);
@@ -237,9 +272,9 @@ void recvthrdfunc(void *arg)
 	// clisock = -1;
 }
 
-void server::m_recvthrdstart()
+void server::m_recvthrdstart(server* serv)
 {
-	thread_create(&m_pid, (void*)recvthrdfunc, &userpwd, 1);
+	thread_create(&m_pid, (void*)recvthrdfunc, serv, 1);
 }
 //得到按照一定 概率生成的vctor
 void server::m_getpocketpoll()
@@ -341,9 +376,9 @@ void server::m_play(int* array)
 
 }
 
-int m_loginOK()
+int m_loginOK(server *serv)
 {
-	int cmd = 0x1000;
+	int cmd = 0x1001;
 	char buf[256];
 	string login = "login ok";
 	char *snd = const_cast<char*>(login.c_str());
@@ -366,8 +401,76 @@ int m_loginOK()
     unsigned short crc = crc_check2(buf+2, 18+sndlen);
 	buf[21+sndlen] = crc / 256;
 	buf[22 + sndlen] = crc % 256;
-	cout << crc << "----" << 22 + sndlen << endl;
-	int ret = m_tcpsend(clisock, buf, 22+sndlen);
+	// cout << crc << "----" << 22 + sndlen << endl;
+	int ret = serv->m_tcpsend(clisock, buf, 22+sndlen);
 	return ret;
 
+}
+
+int setLotteryOK(server* serv)
+{
+	int cmd = 0x1002;
+	char buf[256];
+	string set = "set ok";
+	char *snd = const_cast<char*>(set.c_str());
+	int sndlen = strlen(snd);
+	memset(buf, 0, 256);
+	buf[0] = 0xff;
+	buf[1] = 0xff;
+	memcpy(buf+2, "111111", 6);
+	memcpy(buf+8, "000000", 6);
+    buf[14] = cmd / 256;
+    buf[15] = cmd % 256;
+	if(server::frame >= 65535)
+		server::frame = 0;
+    buf[16] = server::frame / 256;
+	buf[17] = server::frame % 256;
+    buf[18] = sndlen / 256;
+    buf[19] = sndlen % 256;
+    memcpy(buf+20, snd, sndlen);
+
+    unsigned short crc = crc_check2(buf+2, 18+sndlen);
+	buf[21+sndlen] = crc / 256;
+	buf[22 + sndlen] = crc % 256;
+	// cout << crc << "----" << 22 + sndlen << endl;
+	int ret = serv->m_tcpsend(clisock, buf, 22+sndlen);
+	return ret;
+}
+
+int lotterytoclient(int* array, server* serv)
+{
+	int cmd = 0x1003;
+	char buf[256];
+	string s="";
+	char outtime[15]; //20150303102830
+	for(int i=0; i<4; ++i)
+	{
+		s += num2str(array[i])+"|";
+	}
+	s += string(lib_time_now(outtime, 1));
+	cout << "ssss====" << s << endl;
+	char *snd = const_cast<char*>(s.c_str());
+	int sndlen = strlen(snd);
+	memset(buf, 0, 256);
+	buf[0] = 0xff;
+	buf[1] = 0xff;
+	memcpy(buf+2, "111111", 6);
+	memcpy(buf+8, "000000", 6);
+    buf[14] = cmd / 256;
+    buf[15] = cmd % 256;
+	if(server::frame >= 65535)
+		server::frame = 0;
+    buf[16] = server::frame / 256;
+	buf[17] = server::frame % 256;
+    buf[18] = sndlen / 256;
+    buf[19] = sndlen % 256;
+    memcpy(buf+20, snd, sndlen);
+
+    unsigned short crc = crc_check2(buf+2, 18+sndlen);
+	buf[21+sndlen] = crc / 256;
+	buf[22 + sndlen] = crc % 256;
+	// cout << crc << "----" << 22 + sndlen << endl;
+	int ret = serv->m_tcpsend(clisock, buf, 22+sndlen);
+	return 0;
+	
 }

@@ -169,21 +169,21 @@ extern unsigned short crc_check2(char *start, unsigned int len)
 	return(crcreturn); 
 }
 
-// extern void ltrim(std::basic_string<char*>& str)
-// {
-// 	str.erase(0, str.find_first_not_of(' '));
-// }
+extern void ltrim(string& str)
+{
+	str.erase(0, str.find_first_not_of(' '));
+}
 
-// extern void rtrim(std::basic_string<char*>& str)
-// {
-// 	str.erase(str.find_last_not_of(' ')+1);
-// }
+extern void rtrim(string& str)
+{
+	str.erase(str.find_last_not_of(' ')+1);
+}
 
-// extern void trim(std::basic_string<char*>& str)
-// {
-// 	str.erase(0, str.find_first_not_of(' '));
-// 	str.erase(str.find_last_not_of(' ')+1);
-// }
+extern void trim(string& str)
+{
+	str.erase(0, str.find_first_not_of(' '));
+	str.erase(str.find_last_not_of(' ')+1);
+}
 
 extern char *trim(char *str)
 {
@@ -197,4 +197,35 @@ extern char *trim(char *str)
 		--end;
 	*(++end) = '\0';
 	return str;
+}
+//time
+
+char* lib_time_now(char *outtime, int flag)
+{
+	time_t now_t;
+	struct tm *now_tm;
+	if(NULL == outtime)
+		return NULL;
+	now_t = time(NULL);
+	now_tm = localtime(&now_t);
+
+	if(0 == flag)
+		strftime(outtime, 20, "%Y-%m-%d %H:%M:%S", now_tm);
+	else
+		strftime(outtime, 15, "%Y%m%d%H%M%S", now_tm);
+	return outtime;
+}
+
+extern string num2str(int num)
+{
+	stringstream ss;
+	ss << num;
+	return ss.str();
+}
+extern int str2num(string& s)
+{
+	int num;
+	stringstream ss(s);
+	ss >> num;
+	return num;
 }

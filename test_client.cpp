@@ -7,6 +7,8 @@ int main(int argc, char *argv[])
 	string servport = readconfig("./config/client.ini", "net", "servport", "8888");
 	string username = readconfig("./config/client.ini", "user", "name", "haha");
 	string passwd = readconfig("./config/client.ini", "user", "passwd", "1234");
+	string lotterynum = readconfig("./config/client.ini", "set", "lotterynum", "5");
+    string interval = readconfig("./config/client.ini", "set", "lotteryinterval", "3");
     const char *ip = servip.c_str();
 	int port = atoi(servport.c_str());
 	client cli(const_cast<char*>(ip), port, 0, 0, NULL, NULL);
@@ -33,14 +35,19 @@ int main(int argc, char *argv[])
 			cout << "login send error\n";
 			continue;
 		}
-		sleep(1);
-		if(loginflag)
-		{break;}
+		cli.m_setLottery(0x0002, lotterynum, interval);
+		break;
 	}while(1);
-	
+	cli.m_getLottery(0x0003);
 	string line;
 	getline(cin, line);
     return 0;
 }
 
 	
+
+
+
+
+
+
