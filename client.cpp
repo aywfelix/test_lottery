@@ -241,6 +241,7 @@ void recvthrdfunc(void *arg)
 				break;
 			case 0x1002:
 			    cli->varysetlotOK(content);
+				break;
 			case 0x1003:
 				cli->varygetlottery(content);
 			default:
@@ -294,6 +295,7 @@ void client::varygetlottery(char *buf)
 	if(!outfile)
 		cout << "open record file error\n";
 	outfile<< s <<endl;
+	outfile<<endl;
 	outfile.clear();
 	outfile.close();
 	cout << "get lottery ok\n";
