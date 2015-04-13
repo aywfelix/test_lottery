@@ -39,12 +39,13 @@ int main(int argc, char *argv[])
 		}
 		msgq_rcv(msgqid, &(cli.msg), sizeof(cli.msg), 1, 0);
 		string s = cli.msg.msgtext;
-		if(s.find("login") == string::npos)
+		if(s.find("login_OK") == string::npos)
 		{
-			cout << "please try to input username and passwd correctly:\n";
+			cout << "the defult user name or passwd is not correct, please try to input username and passwd correctly:\n";
 		    cin >> username >> passwd;
+			continue;
 		}
-		else
+		else 
 		{
 			break;
 		}
@@ -64,7 +65,8 @@ int main(int argc, char *argv[])
 		cli.m_getLottery(0x0003);
 		msgq_rcv(msgqid, &cli.msg, sizeof(cli.msg), 3, 0);
 		string s2 = cli.msg.msgtext;
-		if(s2.find("end"))
+		
+		if(s2.find("end") != string::npos)
 		{
 			cout << "do you want play again, yes(y) or no(n):\n";
 			string chose;

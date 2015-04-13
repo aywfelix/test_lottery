@@ -77,7 +77,7 @@ int client::m_tcpsend(char *sendbuf, int len) const
 		{
 			if(errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)
 			{
-				usleep(100000);
+				usleep(100);
 				ret = 0;
 			}
 				
@@ -109,13 +109,13 @@ int client::m_loginserver(int cmd, const string& username, const string& passwd)
     buf[18] = sndlen / 256;
     buf[19] = sndlen % 256;
     memcpy(buf+20, snd, sndlen);
-
+   
     unsigned short crc = crc_check2(buf+2, 18+sndlen);
 	buf[21+sndlen] = crc / 256;
 	buf[22 + sndlen] = crc % 256;
 // cout << crc << "----" << 22 + sndlen << endl;
-int ret = m_tcpsend(buf, 22+sndlen);
-	return ret;
+   int ret = m_tcpsend(buf, 22+sndlen);
+   return ret;
 
 }
 
@@ -285,9 +285,8 @@ void client::varyloginOK(client* cli, char * buf)
 {
 	string login = buf;
     cli->msg.mytype = 1;
-	strcpy(cli->msg.msgtext, buf);
-	
-	if(login == "login ok")
+	strcpy(cli->msg.msgtext, buf);	
+	if(login == "login_OK")
 	{
 		loginflag = true;
 	    int ret = msgq_send(msgqid, &cli->msg, sizeof(cli->msg), 0);
@@ -296,11 +295,17 @@ void client::varyloginOK(client* cli, char * buf)
 			cout << "msgq_send error\n";
 		}
 	}
-	else
+	else if(login == "login_ERROR")
 	{
+
+		int ret = msgq_send(msgqid, &cli->msg, sizeof(cli->msg), 0);
+		if(ret < 0)
+		{
+			cout << "msgq_send error\n";
+		}
 	    loginflag = false;
-		close(m_socket);
-		m_socket = -1;
+		// close(m_socket);
+		// m_socket = -1;
 	}
 }
 

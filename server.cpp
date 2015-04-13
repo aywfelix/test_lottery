@@ -135,8 +135,9 @@ int server::m_readuser(const string userfile)
 }
 
 int m_varylogin(char * buf, server* serv)
-{	map<string, string>* userpwd = &(serv->userpwd);
-    string content = string(buf);
+{
+	map<string, string>* userpwd = &(serv->userpwd);
+    string content = buf;
 	int pos = content.find("|");
 	string username = content.substr(0, pos);
 	string passwd = content.substr(pos+1);
@@ -151,15 +152,13 @@ int m_varylogin(char * buf, server* serv)
 	}
 	if(flag)
 	{
-		cout << "login success\n";   //登录成功或失败给客户端发消息
-		m_loginOK(serv);
+		cout << username << " login success\n";   //登录成功或失败给客户端发消息
+		m_loginOK(serv, flag);
 	}
 	else
 	{
 		cout << "login error\n";
-		close(clisock);
-		clisock = -1;
-		return -1;
+		m_loginOK(serv, flag);
 	}
 	return 0;
 }
@@ -250,7 +249,6 @@ void recvthrdfunc(void *arg)
 			// 	return ;
 			// }
 			memcpy(content, buf+20, len);
-			// cout << content << endl;
 			switch(cmd)
 			{
 			case 0x0001:
@@ -269,8 +267,6 @@ void recvthrdfunc(void *arg)
 	
 	} while (1);
 	cout << "server recv error\n";
-	// close(clisock);
-	// clisock = -1;
 }
 
 void server::m_recvthrdstart(server* serv)
@@ -377,11 +373,17 @@ void server::m_play(int* array) const
 
 }
 
-int m_loginOK(server *serv) 
+int m_loginOK(server *serv, bool flag) 
 {
 	int cmd = 0x1001;
 	char buf[256];
-	string login = "login ok";
+	string login= "";
+	if(flag)
+	{
+		login = "login_OK";
+	}
+    else
+		login = "login_ERROR";
 	char *snd = const_cast<char*>(login.c_str());
 	int sndlen = strlen(snd);
 	memset(buf, 0, 256);
