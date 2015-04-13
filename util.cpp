@@ -229,3 +229,56 @@ extern int str2num(string& s)
 	ss >> num;
 	return num;
 }
+
+extern int msgq_init(char *filename, int id, int msgflag)
+{
+	int ret = 0;
+	ret = msgget(ftok(filename, id), msgflag);
+	
+	return ret;	
+}
+/********************************* 
+ * Function Name:
+ * Function description:
+ * Author: jensonhjt 
+ * Input parameter: 
+ *   msgqid : 
+ * Return value: 
+ *
+ **********************************/
+extern int msgq_send(int msgid, const void *msgp, size_t msgsz, int msgflg)
+{
+	int ret = 0;
+	ret = msgsnd(msgid, msgp, msgsz,  msgflg);
+	return ret;
+}
+
+extern int msgq_rcv(int msqid, void *msgp, size_t msgsz, long msgtyp,int msgflg)
+{
+	int ret = 0;
+	ret = msgrcv(msqid, msgp, msgsz, msgtyp, msgflg);
+	return ret;
+}
+
+extern int msgq_free(int msqid)
+{
+	int ret = 0;
+	struct msqid_ds buf;
+	ret = msgctl(msqid, IPC_RMID, &buf);
+
+	return ret;
+}
+
+extern int msgq_stat(int msqid,  struct msqid_ds *info)
+{
+	int ret = 0;
+	ret = msgctl(msqid, IPC_STAT, info);
+	return ret;
+}
+
+
+
+
+
+
+
