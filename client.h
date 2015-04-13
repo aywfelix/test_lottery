@@ -1,13 +1,17 @@
+#ifndef __CLIENT_H__
+#define __CLIENT_H__
+
 #include "util.h"
+#ifndef __SOCKET__
+#define __SOCKET__
 #include<sys/socket.h>
 #include<sys/un.h>
 #include<netinet/in.h>
-#include <string.h>
+#include <arpa/inet.h>
+#endif
 #include <sys/types.h>
 #include <unistd.h>
 #include <errno.h>
-#include <arpa/inet.h>
-#include <ctime>
 
 extern bool loginflag;
 const int LEN =  256;
@@ -69,3 +73,4 @@ private:
 
 
 
+#endif

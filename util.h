@@ -8,17 +8,33 @@
  * Description:   
  *
  */
+#ifndef __UTIL_H__
+#define __UTIL_H__
+#ifndef __STREAM__
+#define __STREAM__
 #include <iostream>
 #include <fstream>
+#include <sstream>
+#endif
+#ifndef __SOCKET__
+#define __SOCKET__
+#include<sys/socket.h>
+#include<sys/un.h>
+#include<netinet/in.h>
+#include <arpa/inet.h>
+#endif
+#ifndef __STRING__
+#define __STRING__
 #include <string>
 #include <cstring>
-#include <sstream>
+#endif
 #include <ctime>
 #include <cstdlib>
 #include <pthread.h>
-#include <string>
-#include<sys/msg.h>
-#include<unistd.h>
+#include <sys/msg.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <errno.h>
 
 using namespace std;
 using std::string;
@@ -48,9 +64,4 @@ extern int msgq_free(int msqid);
 extern int msgq_stat(int msqid,  struct msqid_ds *info);
 
 
-
-
-
-
-
-
+#endif

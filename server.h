@@ -8,19 +8,18 @@
  * Description:   
  *
  */
-
+#ifndef __SERVER_H__
+#define __SERVER_H__
 #include "util.h"
+#ifndef __SOCKET__
+#define __SOCKET__
 #include<sys/socket.h>
 #include<sys/un.h>
 #include<netinet/in.h>
-#include <string.h>
-#include <sys/types.h>
-#include <unistd.h>
-#include <errno.h>
 #include <arpa/inet.h>
+#endif
 #include <vector>
 #include <map>
-#include <sstream>
 
 //默认服务器端 ip 127.0.0.1 port 9999
 class server
@@ -84,3 +83,5 @@ int setlottery(char* buf, server* serv);
 int m_varylogin(char *buf, server* serv);
 int setLotteryOK(server* serv);
 int lotterytoclient(int* array, server* serv);
+
+#endif
