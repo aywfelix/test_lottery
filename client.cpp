@@ -3,6 +3,7 @@
 int client::frame = 0; //static type must init here
 bool loginflag = false;
 int msgqid = 0;
+
 int client::m_connect()
 {
 	struct sockaddr_in sin;
@@ -62,7 +63,7 @@ int client::m_tcprecv(char *recvbuf, int len, int timeout)
 
 }
 
-int client::m_tcpsend(char *sendbuf, int len)
+int client::m_tcpsend(char *sendbuf, int len) const
 {
 	if(NULL == sendbuf || len <=0)
 		return -1;
@@ -87,7 +88,7 @@ int client::m_tcpsend(char *sendbuf, int len)
 	return send_tol;
 }
 
-int client::m_loginserver(int cmd, const string& username, const string& passwd)
+int client::m_loginserver(int cmd, const string& username, const string& passwd) const
 {
 	//	int cmd = 0x0001;
     char buf[256];
@@ -118,7 +119,7 @@ int ret = m_tcpsend(buf, 22+sndlen);
 
 }
 
-int client::m_setLottery(int cmd, const string& num, const string& timeval)
+int client::m_setLottery(int cmd, const string& num, const string& timeval) const
 {
 	//	int cmd = 0x0002;
     char buf[256];
@@ -150,7 +151,7 @@ int client::m_setLottery(int cmd, const string& num, const string& timeval)
 	
 }
 
-int client::m_getLottery(int cmd)
+int client::m_getLottery(int cmd) const
 {
 	//	int cmd = 0x0002;
     char buf[256];
@@ -320,7 +321,7 @@ void client::varysetlotOK(client* cli, char * buf)
 	}
 }
 
-void client::varygetlottery(char *buf)
+void client::varygetlottery(char *buf) const
 {
 	//	cout << buf << endl;
 	string s = buf;

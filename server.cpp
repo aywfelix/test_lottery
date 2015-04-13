@@ -2,7 +2,7 @@
 
 int clisock = -1;
 int server::frame = 0;
-void server::m_setaddr(struct sockaddr_in &sin)
+void server::m_setaddr(struct sockaddr_in &sin) const
 {
 	// struct sockaddr_in sin;
 	memset(&sin, 0 , sizeof(sin));
@@ -11,7 +11,7 @@ void server::m_setaddr(struct sockaddr_in &sin)
 	sin.sin_port = htons(m_port);
 }
 
-void server::m_setparameters()
+void server::m_setparameters() const
 {
 	int readdr = 1,recvbuf = 128*1024, sendbuf = 128*1024;
 	struct linger ling;
@@ -25,7 +25,7 @@ void server::m_setparameters()
 
 }
 
-int server::m_bind( struct sockaddr_in& sin)
+int server::m_bind( struct sockaddr_in& sin) const 
 {
 	int ret = 0;
 	ret = bind(m_socket, (struct sockaddr*)&sin, sizeof(sin));
@@ -36,7 +36,7 @@ int server::m_bind( struct sockaddr_in& sin)
 	return ret;
 }
 
-int server::m_listen( int backlog)
+int server::m_listen( int backlog) const 
 {
 	int ret = 0;
 	if((ret = listen(m_socket, backlog)) < 0)
@@ -46,7 +46,7 @@ int server::m_listen( int backlog)
 	return ret;
 }
 
-int server::m_accept(struct sockaddr_in* cin)
+int server::m_accept(struct sockaddr_in* cin) const 
 {
 	socklen_t socklen = sizeof(cin);
     // int clisock = 0;
@@ -91,7 +91,7 @@ int server::m_tcprecv(int m_socket, char *recvbuf, int len, int timeout)
 	return (ret > 0)?ret :-2;
 }
 
-int server::m_tcpsend(int m_socket, char *sendbuf, int len)
+int server::m_tcpsend(int m_socket, char *sendbuf, int len) const 
 {
 	if(NULL == sendbuf || len <=0)
 		return -1;
@@ -360,7 +360,7 @@ void server::m_getpocketpoll()
     // cout << "\n---------------\n";
 }
 
-void server::m_play(int* array)
+void server::m_play(int* array) const 
 {
 	//get four number from vector by random
 	int pos;
@@ -376,7 +376,7 @@ void server::m_play(int* array)
 
 }
 
-int m_loginOK(server *serv)
+int m_loginOK(server *serv) 
 {
 	int cmd = 0x1001;
 	char buf[256];

@@ -18,8 +18,11 @@
 #include<netinet/in.h>
 #include <arpa/inet.h>
 #endif
+#ifndef __CONTAINER__
+#define __CONTAINER__
 #include <vector>
 #include <map>
+#endif
 
 //默认服务器端 ip 127.0.0.1 port 9999
 class server
@@ -52,17 +55,17 @@ public:
 		delete m_ip;
 		close(m_socket);
 	}
-	void m_setaddr(struct sockaddr_in &sin);
-	void m_setparameters();
-	int m_bind( struct sockaddr_in& sin);
-	int m_listen( int backlog);
-	int m_accept(struct sockaddr_in* cin);
+	void m_setaddr(struct sockaddr_in &sin) const;
+	void m_setparameters() const;
+	int m_bind( struct sockaddr_in& sin) const;
+	int m_listen( int backlog) const;
+	int m_accept(struct sockaddr_in* cin) const;
 	int m_readuser(const string userfile);
 	void m_getpocketpoll();
 	void m_recvthrdstart(server* serv);
-	void m_play(int* array);
+	void m_play(int* array) const;
 	int	m_tcprecv(int m_socket, char *recvbuf, int len, int timeout);
-	int m_tcpsend(int m_socket, char *sendbuf, int len);
+	int m_tcpsend(int m_socket, char *sendbuf, int len) const;
 
 	friend void recvthrdfunc(void *arg);
     
@@ -78,10 +81,10 @@ private:
 };
 
 extern int clisock;
-int m_loginOK(server* serv);
-int setlottery(char* buf, server* serv);
-int m_varylogin(char *buf, server* serv);
-int setLotteryOK(server* serv);
-int lotterytoclient(int* array, server* serv);
+inline int m_loginOK(server* serv);
+inline int setlottery(char* buf, server* serv);
+inline int m_varylogin(char *buf, server* serv);
+inline int setLotteryOK(server* serv);
+inline int lotterytoclient(int* array, server* serv);
 
 #endif
