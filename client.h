@@ -58,6 +58,7 @@ public:
 	void m_recvthrdstart(client* cli);
 	void varyloginOK(client* cli, char * buf);
 	void varysetlotOK(client* cli, char *buf);
+	void varyplayend(client *cli, char *buf);
 	int m_setLottery(int cmd, const string& num, const string& timeval) const;
 friend void recvthrdfunc(void *arg);
 private:

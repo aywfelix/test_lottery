@@ -246,6 +246,8 @@ void recvthrdfunc(void *arg)
 				break;
 			case 0x1003:
 				cli->varygetlottery(content);
+			case 0x1004:
+				cli->varyplayend(cli, content);
 			default:
 				break;
 			}
@@ -323,7 +325,7 @@ void client::varysetlotOK(client* cli, char * buf)
 
 void client::varygetlottery(char *buf) const
 {
-	//	cout << buf << endl;
+   	cout << buf << endl;
 	string s = buf;
 	ofstream outfile("./record", ofstream::out|ofstream::app);
 	if(!outfile)
@@ -333,4 +335,20 @@ void client::varygetlottery(char *buf) const
 	outfile.clear();
 	outfile.close();
 	//	cout << "get lottery ok\n";
+}
+
+void client::varyplayend(client *cli, char *buf)
+{
+	string s = buf;
+    cli->msg.mytype = 3;
+	strcpy(cli->msg.msgtext, buf);
+	if(s == "end")
+	{
+		int ret = msgq_send(msgqid, &cli->msg, sizeof(cli->msg), 0);
+		if(ret < 0)
+		{
+			cout << "msgq_send error\n";
+		}
+	}
+	else{}
 }

@@ -51,6 +51,7 @@ int main(int argc, char *argv[])
 	}while(1);
 	do
 	{
+		cout << "start to play the game...\n";
 		cli.m_setLottery(0x0002, lotterynum, interval);
 		msgq_rcv(msgqid, &cli.msg, sizeof(cli.msg), 2, 0);
 		string s = cli.msg.msgtext;
@@ -61,16 +62,22 @@ int main(int argc, char *argv[])
 			continue;
 		}
 		cli.m_getLottery(0x0003);
-		cout << "do you want play again, yes(y) or no(n):\n";
-		string chose;
-		cin >>chose;
-		if(chose == "y" || chose == "yes")
+		msgq_rcv(msgqid, &cli.msg, sizeof(cli.msg), 3, 0);
+		string s2 = cli.msg.msgtext;
+		if(s2.find("end"))
 		{
-			cout << "please input lotterynum and interval:\n";
-			cin >> lotterynum >> interval;
+			cout << "do you want play again, yes(y) or no(n):\n";
+			string chose;
+			cin >>chose;
+			if(chose == "y" || chose == "yes")
+			{
+				cout << "please input lotterynum and interval:\n";
+				cin >> lotterynum >> interval;
+			}
+			else
+				break;
+	
 		}
-		else
-			break;
 		
 	}while(1);
     close(cli.m_socket);

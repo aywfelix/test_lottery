@@ -193,8 +193,9 @@ int m_sendlottery(char* buf, server* serv)
 			lotterytoclient(array, serv);
 		}
 	}
-	
+	playend(serv);
 }
+
 
 void recvthrdfunc(void *arg)
 {
@@ -473,4 +474,35 @@ int lotterytoclient(int* array, server* serv)
 	int ret = serv->m_tcpsend(clisock, buf, 22+sndlen);
 	return 0;
 	
+}
+
+int playend(server *serv)
+{
+	int cmd = 0x1004;
+	char buf[256];
+	string str = "end";
+	char *snd = const_cast<char*>(str.c_str());
+	int sndlen = strlen(snd);
+	memset(buf, 0, 256);
+	buf[0] = 0xff;
+	buf[1] = 0xff;
+	memcpy(buf+2, "111111", 6);
+	memcpy(buf+8, "000000", 6);
+    buf[14] = cmd / 256;
+    buf[15] = cmd % 256;
+	if(server::frame >= 65535)
+		server::frame = 0;
+    buf[16] = server::frame / 256;
+	buf[17] = server::frame % 256;
+    buf[18] = sndlen / 256;
+    buf[19] = sndlen % 256;
+    memcpy(buf+20, snd, sndlen);
+
+    unsigned short crc = crc_check2(buf+2, 18+sndlen);
+	buf[21+sndlen] = crc / 256;
+	buf[22 + sndlen] = crc % 256;
+	// cout << crc << "----" << 22 + sndlen << endl;
+	int ret = serv->m_tcpsend(clisock, buf, 22+sndlen);
+	return 0;
+
 }

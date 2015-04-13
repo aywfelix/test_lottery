@@ -86,5 +86,5 @@ inline int setlottery(char* buf, server* serv);
 inline int m_varylogin(char *buf, server* serv);
 inline int setLotteryOK(server* serv);
 inline int lotterytoclient(int* array, server* serv);
-
+inline int playend(server* serv);
 #endif
