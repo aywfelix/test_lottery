@@ -15,8 +15,8 @@ void server::m_setparameters() const
 {
 	int readdr = 1,recvbuf = 128*1024, sendbuf = 128*1024;
 	struct linger ling;
-	ling.l_linger = 0;
-	ling.l_onoff = 1;
+	//	ling.l_linger = 0;
+	ling.l_onoff = 0;
 
 	setsockopt(m_socket, SOL_SOCKET,SO_REUSEADDR, &readdr, sizeof(int));
 	setsockopt(m_socket, SOL_SOCKET,SO_RCVBUF, &recvbuf, sizeof(int));
@@ -263,6 +263,11 @@ void recvthrdfunc(void *arg)
 			default:
 				break;
 			}
+		}
+		if(ret < 0)
+		{
+			close(clisock);
+			clisock = -1;
 		}
 	
 	} while (1);

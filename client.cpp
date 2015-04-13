@@ -60,7 +60,6 @@ int client::m_tcprecv(char *recvbuf, int len, int timeout)
 	}
 
 	return (ret > 0)?ret :-2;
-
 }
 
 int client::m_tcpsend(char *sendbuf, int len) const

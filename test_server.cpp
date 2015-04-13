@@ -23,11 +23,13 @@ int main(int argc, char *argv[])
 	int clisock = -1;
 	do
 	{
+	
 		clisock = serv.m_accept(&cin);
 		if(clisock < 0)
 		{
 			cout << "test server accept error\n";
-			break;
+			sleep(2);
+			continue;
 		}
 		cout << "client connect server:"<<clisock << string(inet_ntoa(cin.sin_addr)) << endl;
 

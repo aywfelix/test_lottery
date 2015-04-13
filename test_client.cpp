@@ -19,16 +19,18 @@ int main(int argc, char *argv[])
 	{
 		ret = cli.m_connect();
 		if(ret == 0)
-		{
-			break;
-		}
+			goto stop;
 		else
 		{
 			close(cli.m_socket);
-			cli.m_socket = -1;
+			cli.m_socket = socket(AF_INET, SOCK_STREAM, 0);
+		    sleep(5);
+			continue;
 		}
-		sleep(1);
+	stop:
+		break;
 	}
+	cout << "hahahahahah" << endl;
 	do
 	{
 		ret = cli.m_loginserver(0x0001,username, passwd);
