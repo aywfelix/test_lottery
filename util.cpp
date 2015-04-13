@@ -230,7 +230,7 @@ extern int str2num(string& s)
 	return num;
 }
 
-extern int msgq_init(char *filename, int id, int msgflag)
+extern int msgq_init(const char *filename, int id, int msgflag)
 {
 	int ret = 0;
 	ret = msgget(ftok(filename, id), msgflag);
@@ -275,10 +275,3 @@ extern int msgq_stat(int msqid,  struct msqid_ds *info)
 	ret = msgctl(msqid, IPC_STAT, info);
 	return ret;
 }
-
-
-
-
-
-
-

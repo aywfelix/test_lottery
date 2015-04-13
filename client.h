@@ -10,11 +10,23 @@
 #include <ctime>
 
 extern bool loginflag;
+const int LEN =  256;
+extern int msgqid;
+struct msg_s
+{
+	long int mytype;
+	char msgtext[LEN];
+};
+
+//mytype = 1 //login ok
 class client
 {
 public:
 	 int m_socket;
+	char *m_ip;
+	int m_port;
 
+	struct msg_s msg;
 	static int frame;
     client(char *ip, int port, int lotterynum, int lotteryinterval, char *record, char *recordfile):
 		m_ip(ip),m_port(port),m_lotterynum(lotterynum),m_lotteryinterval(lotteryinterval),m_record(record),m_recordfile(recordfile)
@@ -27,16 +39,12 @@ public:
 
 		mutex_init(&m_mutex);
 		loginflag = false;
+		memset(&msg, 0, sizeof(msg));
 	}
 	
 	~client()
 	{
-		delete m_ip;
-		m_ip = NULL;
-		delete m_recordfile;
-		m_recordfile = NULL;
-	}
-	
+	}	
 	int m_connect();
 	int m_setlotteryinter(int interval);
 	int m_setlottnum(int num);
@@ -46,13 +54,11 @@ public:
 	int m_getLottery(int cmd);
 	void varygetlottery(char *buf);
 	void m_recvthrdstart(client* cli);
-	void varyloginOK(char * buf);
-	void varysetlotOK(char *buf);
+	void varyloginOK(client* cli, char * buf);
+	void varysetlotOK(client* cli, char *buf);
 	int m_setLottery(int cmd, const string& num, const string& timeval);
 friend void recvthrdfunc(void *arg);
 private:
-	char *m_ip;
-	int m_port;
 	int m_lotterynum; //开奖次数
     int m_lotteryinterval; //多少秒间隔
 	char *m_record;

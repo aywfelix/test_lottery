@@ -11,6 +11,8 @@ int main(int argc, char *argv[])
     string interval = readconfig("./config/client.ini", "set", "lotteryinterval", "3");
     const char *ip = servip.c_str();
 	int port = atoi(servport.c_str());
+	//
+	msgqid = msgq_init("./", 1, (int)IPC_CREAT|0666);
 	client cli(const_cast<char*>(ip), port, 0, 0, NULL, NULL);
 	cli.m_recvthrdstart(&cli);
 	while(1)
@@ -35,10 +37,44 @@ int main(int argc, char *argv[])
 			cout << "login send error\n";
 			continue;
 		}
-		cli.m_setLottery(0x0002, lotterynum, interval);
-		break;
+		msgq_rcv(msgqid, &(cli.msg), sizeof(cli.msg), 1, 0);
+		string s = cli.msg.msgtext;
+		if(s.find("login") == string::npos)
+		{
+			cout << "please try to input username and passwd correctly:\n";
+		    cin >> username >> passwd;
+		}
+		else
+		{
+			break;
+		}
 	}while(1);
-	cli.m_getLottery(0x0003);
+	do
+	{
+		cli.m_setLottery(0x0002, lotterynum, interval);
+		msgq_rcv(msgqid, &cli.msg, sizeof(cli.msg), 2, 0);
+		string s = cli.msg.msgtext;
+		if(s.find("set") == string::npos)
+		{
+			cout << "please input lotterynum and interval:\n";
+			cin >> lotterynum >> interval;
+			continue;
+		}
+		cli.m_getLottery(0x0003);
+		cout << "do you want play again, yes(y) or no(n):\n";
+		string chose;
+		cin >>chose;
+		if(chose == "y" || chose == "yes")
+		{
+			cout << "please input lotterynum and interval:\n";
+			cin >> lotterynum >> interval;
+		}
+		else
+			break;
+		
+	}while(1);
+    close(cli.m_socket);
+    msgq_free(msgqid);
 	string line;
 	getline(cin, line);
     return 0;

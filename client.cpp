@@ -2,6 +2,7 @@
 
 int client::frame = 0; //static type must init here
 bool loginflag = false;
+int msgqid = 0;
 int client::m_connect()
 {
 	struct sockaddr_in sin;
@@ -237,10 +238,10 @@ void recvthrdfunc(void *arg)
 			switch(cmd)
 			{
 			case 0x1001:
-				cli->varyloginOK(content);
+				cli->varyloginOK(cli, content);
 				break;
 			case 0x1002:
-			    cli->varysetlotOK(content);
+			    cli->varysetlotOK(cli, content);
 				break;
 			case 0x1003:
 				cli->varygetlottery(content);
@@ -248,6 +249,24 @@ void recvthrdfunc(void *arg)
 				break;
 			}
 
+		}
+
+		if(ret < 0)
+		{
+		    sleep(2);
+			close(cli->m_socket);
+			cli->m_socket = socket(AF_INET, SOCK_STREAM, 0);
+			if(cli->m_socket)
+			{
+				struct sockaddr_in sin;
+				memset(&sin, 0, sizeof(sin));
+				sin.sin_family = AF_INET;
+				sin.sin_addr.s_addr = inet_addr(cli->m_ip);
+				sin.sin_port = htons(cli->m_port);
+				ret = connect(cli->m_socket, (struct sockaddr *)&sin, sizeof(struct sockaddr)); //connect ok return 0
+				if(ret < 0)
+					continue;
+			}
 		}
 	
 	} while (1);
@@ -259,12 +278,20 @@ void client::m_recvthrdstart(client* cli)
 	thread_create(&pid, (void*)recvthrdfunc, cli, 1);
 }
 
-void client::varyloginOK(char * buf)
+void client::varyloginOK(client* cli, char * buf)
 {
 	string login = buf;
+    cli->msg.mytype = 1;
+	strcpy(cli->msg.msgtext, buf);
+	
 	if(login == "login ok")
 	{
 		loginflag = true;
+	    int ret = msgq_send(msgqid, &cli->msg, sizeof(cli->msg), 0);
+		if(ret < 0)
+		{
+			cout << "msgq_send error\n";
+		}
 	}
 	else
 	{
@@ -274,12 +301,18 @@ void client::varyloginOK(char * buf)
 	}
 }
 
-void client::varysetlotOK(char * buf)
+void client::varysetlotOK(client* cli, char * buf)
 {
 	string login = buf;
+	cli->msg.mytype = 2;
+	strcpy(cli->msg.msgtext, buf);
 	if(login == "set ok")
 	{
-		cout << "set lottery OK\n";
+		int ret = msgq_send(msgqid, &cli->msg, sizeof(cli->msg), 0);
+		if(ret < 0)
+		{
+			cout << "msgq_send error\n";
+		}
 	}
 	else
 	{
@@ -289,7 +322,7 @@ void client::varysetlotOK(char * buf)
 
 void client::varygetlottery(char *buf)
 {
-	cout << buf << endl;
+	//	cout << buf << endl;
 	string s = buf;
 	ofstream outfile("./record", ofstream::out|ofstream::app);
 	if(!outfile)
@@ -298,5 +331,5 @@ void client::varygetlottery(char *buf)
 	outfile<<endl;
 	outfile.clear();
 	outfile.close();
-	cout << "get lottery ok\n";
+	//	cout << "get lottery ok\n";
 }
