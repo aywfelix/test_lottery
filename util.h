@@ -35,6 +35,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <errno.h>
+#include <signal.h>
 
 using namespace std;
 using std::string;

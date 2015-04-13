@@ -2,6 +2,7 @@
 
 int main(int argc, char *argv[])
 {
+	signal(SIGPIPE,SIG_IGN);
     string sip = readconfig("./config/server.ini", "net", "servip", "127.0.0.1");
 	string sport = readconfig("./config/server.ini","[net]", "servport", "9999");
     const char *ip = sip.c_str();
