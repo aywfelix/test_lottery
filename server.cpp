@@ -522,3 +522,126 @@ int playend(server *serv)
 	return 0;
 
 }
+
+void server::initevent()
+{
+	epfd = epoll_create(BACKLOG);
+	epoll_event event;
+	event.data.fd = m_socket;  
+    event.events = EPOLLIN;  
+  
+    epoll_ctl( epfd, EPOLL_CTL_ADD, m_socket, &event );  
+    setnonblock(m_socket);  
+}
+
+int addfd(server* serv, bool flag)
+{
+	epoll_event event;  
+    event.data.fd = clisock;  
+    event.events = EPOLLIN;  
+    if( flag )  
+    {  
+        event.events |= EPOLLET;  
+    }  
+    epoll_ctl(serv->epfd, EPOLL_CTL_ADD, clisock, &event );  
+    setnonblock(clisock);  
+}
+
+void et(server* serv, int num)
+{
+	int ret = 0, cmd = 0, len = 0;
+	unsigned short  crc;
+	char buf[1024];
+	char content[256];
+
+    for ( int i = 0; i < num; i++ )  
+    {  
+        int sockfd = serv->events[i].data.fd;  
+        if ( sockfd == serv->m_socket )  
+        {  
+            struct sockaddr_in client_address;  
+            socklen_t client_addrlength = sizeof( client_address );  
+            clisock = accept(serv->m_socket, ( struct sockaddr* )&client_address, &client_addrlength );  
+            addfd(serv,true );  
+        }  
+        else if ( serv->events[i].events & EPOLLIN )  
+        {  
+            printf( "event trigger once\n" );  
+            for(;;)
+            {  
+                memset(buf, 0, sizeof(buf));
+				memset(content, 0, sizeof(content));
+				ret = serv->m_tcprecv(sockfd, buf, 2, -1); //recv start data
+				if((ret != 2) || ((unsigned char)buf[0] != 0xFF) || ((unsigned char)buf[1] != 0xFF))
+				{
+					break;
+				}
+				ret = serv->m_tcprecv(sockfd, buf+2, 6, -1);  //recv source addr
+				if((ret != 6) || (strcmp(buf+2, "000000")!= 0))
+				{
+					break;
+				}
+				ret = serv->m_tcprecv(sockfd, buf+8, 6, -1); //recv destination addr
+				if((ret != 6)||(strncmp(buf+8, "111111", 6) != 0))
+				{
+					break;
+				}
+				ret = serv->m_tcprecv(sockfd, buf+14, 2, -1); //recv cmd
+				if(ret != 2)
+				{
+					break;
+				}
+				cmd = (unsigned char)buf[14]*256 + (unsigned char)buf[15];	
+				ret = serv->m_tcprecv(sockfd, buf+16, 2, -1); //recv message num
+				ret = serv->m_tcprecv(sockfd, buf+18, 2, -1); //the length content
+				len = (unsigned char)buf[18]*256 + (unsigned char)buf[19];
+				ret = serv->m_tcprecv(sockfd, buf+20, len+2, -1);  //the last data
+				crc = crc_check2(buf+2, len+18);
+				unsigned short crc2 = (unsigned char)buf[21 + len]*256 + (unsigned char)buf[22 + len];
+				// cout << crc <<"====" <<crc2 << endl;
+				// cout << 22 + len << endl;
+				// if(crc != crc2)
+				// {
+				// 	perror("crc error");
+				// 	return ;
+				// }
+				memcpy(content, buf+20, len);
+				switch(cmd)
+				{
+				case 0x0001:
+					m_varylogin(content, serv);
+					break;
+				case 0x0002:
+					m_setlottery(content, serv);
+					break;
+				case 0x0003:
+					m_sendlottery(content, serv);
+					break;
+				default:
+					break;
+				}
+
+               
+                if( ret < 0 )  
+                {  
+                    if( ( errno == EAGAIN ) || ( errno == EWOULDBLOCK ) )  
+                    {  
+                        printf( "read later\n" );  
+                        break;  
+                    }  
+                    close( sockfd );  
+                    break;  
+                }  
+                else if( ret == 0 )  
+                {  
+                    close( sockfd );  
+                }  
+               
+            }  
+        }  
+        else  
+        {  
+            printf( "something else happened \n" );  
+        }  
+    }  	
+}

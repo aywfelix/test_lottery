@@ -23,11 +23,17 @@
 #include <vector>
 #include <map>
 #endif
+#include <sys/epoll.h>
 
+const int MAX_NUM = 200;
+const int BACKLOG = 10;
 //默认服务器端 ip 127.0.0.1 port 9999
 class server
 {
 public:
+	epoll_event events[MAX_NUM];
+	int epfd;
+	int m_socket;
 	static int frame;
 	map<string, string> userpwd; //保存用户名和密码,密码暂用明文
 	int lotterynum;
@@ -60,13 +66,14 @@ public:
 	int	m_tcprecv(int m_socket, char *recvbuf, int len, int timeout);
 	int m_tcpsend(int m_socket, char *sendbuf, int len) const;
 
+	void initevent();
 	int readconf(const char* file);
 	friend void recvthrdfunc(void *arg);
     
 private:
 	char *m_ip;
 	int m_port;
-	int m_socket;
+
 	vector<int> vec; //pocket pool
 	char recvbuf[1024];
 	char sendbuf[1024];
@@ -74,13 +81,14 @@ private:
 	pthread_mutex_t m_mutex;
 };
 
-extern int clisock;
-inline int m_loginOK(server* serv, bool flag);
-inline int setlottery(char* buf, server* serv);
-inline int m_varylogin(char *buf, server* serv);
-inline int setLotteryOK(server* serv);
-inline int lotterytoclient(int* array, server* serv);
-inline int playend(server* serv);
+int m_loginOK(server* serv, bool flag);
+int setlottery(char* buf, server* serv);
+int m_varylogin(char *buf, server* serv);
+int setLotteryOK(server* serv);
+int lotterytoclient(int* array, server* serv);
+int playend(server* serv);
+int addfd(server* serv, bool flag);
+void et(server* serv, int num);
 #endif
 
 

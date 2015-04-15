@@ -275,3 +275,11 @@ extern int msgq_stat(int msqid,  struct msqid_ds *info)
 	ret = msgctl(msqid, IPC_STAT, info);
 	return ret;
 }
+
+extern int setnonblock(int fd)
+{
+	int oldopt = fcntl(fd, F_GETFL);
+	int newopt = oldopt | O_NONBLOCK;
+	fcntl(fd, F_SETFL, newopt);
+	return oldopt;
+}

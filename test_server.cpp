@@ -12,24 +12,22 @@ int main(int argc, char *argv[])
 	serv.m_setparameters();
 	serv.m_bind(sin);
 	serv.m_listen(10);
+	serv.initevent();
 	serv.m_readuser("./config/userlist");
 
-	serv.m_recvthrdstart(&serv); //start thread to recv client data
+	//	serv.m_recvthrdstart(&serv); //start thread to recv client data
     cout << "server start to accept client...\n";
 	int clisock = -1;
-	do
-	{
-	
-		clisock = serv.m_accept(&cin);
-		if(clisock < 0)
-		{
-			cout << "test server accept error\n";
-			sleep(2);
-			continue;
-		}
-		cout << "client connect server:"<<clisock << string(inet_ntoa(cin.sin_addr)) << endl;
 
-	} while (1);
-	
+    for(;;)
+	{
+		int num = epoll_wait(serv.epfd, serv.events, MAX_NUM, -1);
+		if(num <0)
+		{
+			cout << "epoll_wait error\n";
+			break;
+		}
+		et(&serv, num);
+	}
     return 0;
 }

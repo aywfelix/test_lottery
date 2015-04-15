@@ -36,6 +36,7 @@
 #include <sys/types.h>
 #include <errno.h>
 #include <signal.h>
+#include <fcntl.h>
 
 using namespace std;
 using std::string;
@@ -63,5 +64,5 @@ extern int msgq_send(int msgid, const void *msgp, size_t msgsz, int msgflg);
 extern int msgq_rcv(int msqid, void *msgp, size_t msgsz, long msgtyp,int msgflg);
 extern int msgq_free(int msqid);
 extern int msgq_stat(int msqid,  struct msqid_ds *info);
-
+extern int setnonblock(int fd);
 #endif
