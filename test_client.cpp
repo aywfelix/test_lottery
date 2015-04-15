@@ -4,14 +4,6 @@ int main(int argc, char *argv[])
 {
 	signal(SIGPIPE,SIG_IGN);
 	int ret;
-    // string servip = readconfig("./config/client.ini", "net", "servip", "127.0.0.1");
-	// string servport = readconfig("./config/client.ini", "net", "servport", "8888");
-	// string username = readconfig("./config/client.ini", "user", "name", "haha");
-	// string passwd = readconfig("./config/client.ini", "user", "passwd", "1234");
-	// string lotterynum = readconfig("./config/client.ini", "set", "lotterynum", "5");
-    // string interval = readconfig("./config/client.ini", "set", "lotteryinterval", "3");
-    // const char *ip = servip.c_str();
-	// int port = atoi(servport.c_str());
 	//	
 	msgqid = msgq_init("./", 1, (int)IPC_CREAT|0666);
 	client cli;
@@ -94,11 +86,9 @@ int main(int argc, char *argv[])
 		
 	}while(1);
 
-
     close(cli.m_socket);
     msgq_free(msgqid);
-	string line;
-	getline(cin, line);
+
     return 0;
 }
 
