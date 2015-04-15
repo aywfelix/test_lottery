@@ -24,7 +24,7 @@ struct msg_s
 class client
 {
 public:
-	 int m_socket;
+	int m_socket;
 	char *m_ip;
 	int m_port;
 

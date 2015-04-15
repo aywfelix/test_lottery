@@ -254,7 +254,19 @@ void recvthrdfunc(void *arg)
 		}
 		if(ret < 0)
 		{
-			sleep(2);
+			sleep(5);
+			close(cli->m_socket);
+			cli->m_socket = socket(AF_INET, SOCK_STREAM, 0);
+			if(cli->m_socket)
+			{
+				struct sockaddr_in sin;
+				memset(&sin, 0, sizeof(sin));
+				sin.sin_family = AF_INET;
+				sin.sin_addr.s_addr = inet_addr(cli->m_ip);
+				sin.sin_port = htons(cli->m_port);
+				continue;
+			}
+			cli->m_connect();
   		}
 	
 	} while (1);
