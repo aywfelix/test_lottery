@@ -2,6 +2,15 @@
 
 int clisock = -1;
 int server::frame = 0;
+
+int server::readconf(char* file)
+{
+	string sip = readconfig(file, "net", "servip", "127.0.0.1");
+	string sport = readconfig(file,"[net]", "servport", "9999");
+    m_ip = const_cast<char*>(sip.c_str());
+	m_port = str2num(sport);
+	return 0;
+}
 void server::m_setaddr(struct sockaddr_in &sin) const
 {
 	// struct sockaddr_in sin;

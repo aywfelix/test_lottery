@@ -28,18 +28,12 @@
 class server
 {
 public:
-
 	static int frame;
 	map<string, string> userpwd; //保存用户名和密码,密码暂用明文
 	int lotterynum;
 	int lotteryinterval;
-	server(char *ip, int port):m_ip(ip), m_port(port)
+	server()
 	{
-		if(m_ip == NULL || m_port <0)
-		{
-			cout << "server ip and port error\n";
-			return;
-		}
 		m_socket = socket(AF_INET, SOCK_STREAM, 0);
 		if(m_socket < 0)
 		{
@@ -52,7 +46,6 @@ public:
 	}
 	~server()
 	{
-		delete m_ip;
 		close(m_socket);
 	}
 	void m_setaddr(struct sockaddr_in &sin) const;
@@ -67,6 +60,7 @@ public:
 	int	m_tcprecv(int m_socket, char *recvbuf, int len, int timeout);
 	int m_tcpsend(int m_socket, char *sendbuf, int len) const;
 
+	int readconf(char* file);
 	friend void recvthrdfunc(void *arg);
     
 private:

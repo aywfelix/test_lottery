@@ -3,15 +3,10 @@
 int main(int argc, char *argv[])
 {
 	signal(SIGPIPE,SIG_IGN);
-    string sip = readconfig("./config/server.ini", "net", "servip", "127.0.0.1");
-	string sport = readconfig("./config/server.ini","[net]", "servport", "9999");
-    const char *ip = sip.c_str();
-	int port = atoi(sport.c_str());
-
-    server serv(const_cast<char*>(ip), port);
+    server serv;
+	serv.readconf("./config/server.ini");
 	serv.m_getpocketpoll();
-	// int arr[4];
-	// serv.m_play(arr);
+	
     struct sockaddr_in sin, cin;
 	serv.m_setaddr(sin);
 	serv.m_setparameters();
