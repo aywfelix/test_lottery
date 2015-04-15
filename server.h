@@ -60,7 +60,7 @@ public:
 	int	m_tcprecv(int m_socket, char *recvbuf, int len, int timeout);
 	int m_tcpsend(int m_socket, char *sendbuf, int len) const;
 
-	int readconf(char* file);
+	int readconf(const char* file);
 	friend void recvthrdfunc(void *arg);
     
 private:

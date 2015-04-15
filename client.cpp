@@ -4,6 +4,18 @@ int client::frame = 0; //static type must init here
 bool loginflag = false;
 int msgqid = 0;
 
+void client::readconf(const char* file)
+{
+	string servip = readconfig(file, "net", "servip", "127.0.0.1");
+	string servport = readconfig(file, "net", "servport", "8888");
+	username = readconfig(file, "user", "name", "haha");
+	passwd = readconfig(file, "user", "passwd", "1234");
+	m_lotterynum = readconfig(file, "set", "lotterynum", "5");
+    m_lotteryinterval = readconfig(file, "set", "lotteryinterval", "3");
+    m_ip = const_cast<char*>(servip.c_str());
+	m_port = atoi(servport.c_str());
+   
+}
 int client::m_connect()
 {
 	struct sockaddr_in sin;
@@ -87,7 +99,7 @@ int client::m_tcpsend(char *sendbuf, int len) const
 	return send_tol;
 }
 
-int client::m_loginserver(int cmd, const string& username, const string& passwd) const
+int client::m_loginserver(int cmd) const
 {
 	//	int cmd = 0x0001;
     char buf[256];
@@ -118,12 +130,12 @@ int client::m_loginserver(int cmd, const string& username, const string& passwd)
 
 }
 
-int client::m_setLottery(int cmd, const string& num, const string& timeval) const
+int client::m_setLottery(int cmd) const
 {
 	//	int cmd = 0x0002;
     char buf[256];
 	memset(buf, 0, 256);
-	string s = num + "|" + timeval;
+	string s = m_lotterynum + "|" + m_lotteryinterval;
 	char *snd = const_cast<char*>(s.c_str());
 	trim(snd);
 	int sndlen = strlen(snd);
