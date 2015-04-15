@@ -605,6 +605,20 @@ void et(server* serv, int num)
 				// 	perror("crc error");
 				// 	return ;
 				// }
+				if( ret < 0 )  
+                {  
+                    if( ( errno == EAGAIN ) || ( errno == EWOULDBLOCK ) )  
+                    {  
+                        printf( "read later\n" );  
+                        break;  
+                    }  
+                    close( sockfd );  
+                    break;  
+                }  
+                else if( ret == 0 )  
+                {  
+                    close( sockfd );  
+                }  
 				memcpy(content, buf+20, len);
 				switch(cmd)
 				{
@@ -620,28 +634,8 @@ void et(server* serv, int num)
 				default:
 					break;
 				}
+			}
+        }  
 
-               
-                if( ret < 0 )  
-                {  
-                    if( ( errno == EAGAIN ) || ( errno == EWOULDBLOCK ) )  
-                    {  
-                        printf( "read later\n" );  
-                        break;  
-                    }  
-                    close( sockfd );  
-                    break;  
-                }  
-                else if( ret == 0 )  
-                {  
-                    close( sockfd );  
-                }  
-               
-            }  
-        }  
-        else  
-        {  
-            printf( "something else happened \n" );  
-        }  
     }  	
 }

@@ -2,7 +2,7 @@ CC = gcc
 CXX = g++
 #CFLAGS = -g -lstdc++ -Wall -o2
 CFLAGS = -g
-LDFLAGS = -lpthread 
+LDFLAGS = -lpthread -levent 
 TARGET: test_client test_server test
 all: $(TARGET)
 
