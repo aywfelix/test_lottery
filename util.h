@@ -64,5 +64,4 @@ extern int msgq_rcv(int msqid, void *msgp, size_t msgsz, long msgtyp,int msgflg)
 extern int msgq_free(int msqid);
 extern int msgq_stat(int msqid,  struct msqid_ds *info);
 
-
 #endif
