@@ -1,10 +1,10 @@
-#include "server.h"
+#include "CServer.h"
 #include <cstdio>
 
 //int clisock = -1;
-int server::frame = 0;
+int CServer::sm_frame = 0;
 
-int server::readconf(const char* file)
+int CServer::ReadConf(const char* file)
 {
 	string sip = readconfig(file, "net", "servip", "127.0.0.1");
 	string sport = readconfig(file,"[net]", "servport", "9999");
@@ -12,7 +12,7 @@ int server::readconf(const char* file)
 	m_port = str2num(sport);
 	return 0;
 }
-void server::m_setaddr(struct sockaddr_in &sin) const
+void CServer::SetAddr(struct sockaddr_in &sin) const
 {
 	// struct sockaddr_in sin;
 	memset(&sin, 0 , sizeof(sin));
@@ -21,7 +21,7 @@ void server::m_setaddr(struct sockaddr_in &sin) const
 	sin.sin_port = htons(m_port);
 }
 
-void server::m_setparameters() const
+void CServer::SetParameters() const
 {
 	int readdr = 1,recvbuf = 128*1024, sendbuf = 128*1024;
 	struct linger ling;
@@ -35,7 +35,7 @@ void server::m_setparameters() const
 
 }
 
-int server::m_bind( struct sockaddr_in& sin) const 
+int CServer::Bind( struct sockaddr_in& sin) const 
 {
 	int ret = 0;
 	ret = bind(m_socket, (struct sockaddr*)&sin, sizeof(sin));
@@ -46,7 +46,7 @@ int server::m_bind( struct sockaddr_in& sin) const
 	return ret;
 }
 
-int server::m_listen( int backlog) const 
+int CServer::Listen( int backlog) const 
 {
 	int ret = 0;
 	if((ret = listen(m_socket, backlog)) < 0)
@@ -56,20 +56,20 @@ int server::m_listen( int backlog) const
 	return ret;
 }
 
-int server::m_accept(struct sockaddr_in* cin) const 
+int CServer::Accept(struct sockaddr_in* cin) const 
 {
 	// socklen_t socklen = sizeof(cin);
     // // int clisock = 0;
     // clisock = accept(m_socket, (struct sockaddr*)cin, &socklen);
 	// if(clisock <0)
 	// {
-	// 	cout << " server accept error\n";
+	// 	cout << " CServer accept error\n";
 	// 	return -1;
 	// }
 	// return clisock;
 }
 
-int server::m_tcprecv(int m_socket, char *recvbuf, int len, int timeout)
+int CServer::TcpRecv(int m_socket, char *recvbuf, int len, int timeout)
 {
 	if(NULL == recvbuf || len <=0 )
 		return -1;
@@ -101,7 +101,7 @@ int server::m_tcprecv(int m_socket, char *recvbuf, int len, int timeout)
 	return (ret > 0)?ret :-2;
 }
 
-int server::m_tcpsend(int m_socket, char *sendbuf, int len) const 
+int CServer::TcpSend(int m_socket, char *sendbuf, int len) const 
 {
 	if(NULL == sendbuf || len <=0)
 		return -1;
@@ -126,7 +126,7 @@ int server::m_tcpsend(int m_socket, char *sendbuf, int len) const
 	return send_tol;
 }
 
-int server::m_readuser(const string userfile)
+int CServer::ReadUser(const string userfile)
 {
 	ifstream infile(userfile.c_str(), ifstream::in);
 	if(!infile)
@@ -140,13 +140,13 @@ int server::m_readuser(const string userfile)
 	{
 		istringstream isstream(record);
 		isstream >> username >> passwd ;
-		userpwd.insert(pair<string, string>(username, passwd));
+		m_userpwd.insert(pair<string, string>(username, passwd));
 	}
 }
 
-int m_varylogin(char * buf, server* serv, int i, int sockfd)
+int VaryLogin(char * buf, CServer* serv, int i, int sockfd)
 {
-	map<string, string>* userpwd = &(serv->userpwd);
+	map<string, string>* userpwd = &(serv->m_userpwd);
     string content = buf;
 	int pos = content.find("|");
 	string username = content.substr(0, pos);
@@ -157,59 +157,59 @@ int m_varylogin(char * buf, server* serv, int i, int sockfd)
 		if(mapite->first == username && mapite->second == passwd)
 		{
 			flag = true;
-		    serv->user.insert(pair<int, string>(sockfd, username));
+		    serv->m_user.insert(pair<int, string>(sockfd, username));
 			break;
 		}
 	}
 	if(flag)
 	{
 		cout << username << " login success\n";   //登录成功或失败给客户端发消息
-		m_loginOK(serv, flag, sockfd);
+		LoginOK(serv, flag, sockfd);
 	}
 	else
 	{
 		cout << "login error\n";
-		m_loginOK(serv, flag, sockfd);
+		LoginOK(serv, flag, sockfd);
 	}
 	return 0;
 }
 
-int m_setlottery(char * buf, server* serv, int sockfd)
+int SetLottery(char * buf, CServer* serv, int sockfd)
 {
 	string s = buf;
 	string lotnum = s.substr(0, s.find_first_of("|"));
 	string interval = s.substr(s.find_first_of("|")+1);
-    serv->lotterynum = str2num(lotnum);
-	serv->lotteryinterval = str2num(interval);
-	if(serv->lotterynum > 0)
+    serv->m_lotterynum = str2num(lotnum);
+	serv->m_lotteryinterval = str2num(interval);
+	if(serv->m_lotterynum > 0)
 	{
 		cout<<"set lotterynum ok\n";
-		setLotteryOK(serv, sockfd);	
+		SetLotteryOK(serv, sockfd);	
 	}
 }
 
-int m_sendlottery(char* buf, server* serv, int sockfd)
+int SendLottery(char* buf, CServer* serv, int sockfd)
 {
 	int array[4];
-	for(int i=0;i< serv->lotterynum; ++i)
+	for(int i=0;i< serv->m_lotterynum; ++i)
 	{
-		serv->m_play(array);
-	  	sleep(serv->lotteryinterval); //set the time interval about the game
-		//show in server terminal
+		serv->Play(array);
+	  	sleep(serv->m_lotteryinterval); //set the time interval about the game
+		//show in CServer terminal
 		for(int i=0; i< 4;++i)
 			cout << array[i] << " ";
 		cout << endl;
 		{
-			lotterytoclient(array, serv, sockfd);
+			Lottery2Client(array, serv, sockfd);
 		}
 	}
-	playend(serv, sockfd);
+	PlayEnd(serv, sockfd);
 }
 
 
-void recvthrdfunc(void *arg)
+void RecvThrdFunc(void *arg)
 {
-	server *serv = (server*)arg;
+	CServer *serv = (CServer*)arg;
 	int ret = 0, cmd = 0, len = 0;
 	unsigned short  crc;
 	char buf[1024];
@@ -225,31 +225,31 @@ void recvthrdfunc(void *arg)
 			//paser the data  message
 			memset(buf, 0, sizeof(buf));
 			memset(content, 0, sizeof(content));
-			// ret = serv->m_tcprecv(clisock, buf, 2, -1); //recv start data
+			// ret = serv->TcpRecv(clisock, buf, 2, -1); //recv start data
 			// if((ret != 2) || ((unsigned char)buf[0] != 0xFF) || ((unsigned char)buf[1] != 0xFF))
 			// {
 			// 	break;
 			// }
-			// ret = serv->m_tcprecv(clisock, buf+2, 6, -1);  //recv source addr
+			// ret = serv->TcpRecv(clisock, buf+2, 6, -1);  //recv source addr
 			// if((ret != 6) || (strcmp(buf+2, "000000")!= 0))
 			// {
 			// 	break;
 			// }
-			// ret = serv->m_tcprecv(clisock, buf+8, 6, -1); //recv destination addr
+			// ret = serv->TcpRecv(clisock, buf+8, 6, -1); //recv destination addr
 			// if((ret != 6)||(strncmp(buf+8, "111111", 6) != 0))
 			// {
   			// 	break;
 			// }
-			// ret = serv->m_tcprecv(clisock, buf+14, 2, -1); //recv cmd
+			// ret = serv->TcpRecv(clisock, buf+14, 2, -1); //recv cmd
 			// if(ret != 2)
 			// {
 			// 	break;
 			// }
 			// cmd = (unsigned char)buf[14]*256 + (unsigned char)buf[15];	
-			// ret = serv->m_tcprecv(clisock, buf+16, 2, -1); //recv message num
-			// ret = serv->m_tcprecv(clisock, buf+18, 2, -1); //the length content
+			// ret = serv->TcpRecv(clisock, buf+16, 2, -1); //recv message num
+			// ret = serv->TcpRecv(clisock, buf+18, 2, -1); //the length content
 			// len = (unsigned char)buf[18]*256 + (unsigned char)buf[19];
-			// ret = serv->m_tcprecv(clisock, buf+20, len+2, -1);  //the last data
+			// ret = serv->TcpRecv(clisock, buf+20, len+2, -1);  //the last data
 			// crc = crc_check2(buf+2, len+18);
 			// unsigned short crc2 = (unsigned char)buf[21 + len]*256 + (unsigned char)buf[22 + len];
 			// cout << crc <<"====" <<crc2 << endl;
@@ -282,15 +282,15 @@ void recvthrdfunc(void *arg)
 		// }
 	
 	} while (1);
-	cout << "server recv error\n";
+	cout << "CServer recv error\n";
 }
 
-void server::m_recvthrdstart(server* serv)
+void CServer::RecvThrdStart(CServer* serv)
 {
-	thread_create(&m_pid, (void*)recvthrdfunc, serv, 1);
+	thread_create(&m_pid, (void*)RecvThrdFunc, serv, 1);
 }
 //得到按照一定 概率生成的vctor
-void server::m_getpocketpoll()
+void CServer::GetPocketPool()
 {
 	int a1[9] = {1,1,1,1,1,1,1,1,1};
 	int a2[12] = {2,2,2,2,2,2,2,2,2,2,2,2};
@@ -331,9 +331,9 @@ void server::m_getpocketpoll()
 	for(int i = 0; i< 100; ++i)
 	{
 		t = int(random(0, 101));
-		if(vec[t] == 0)
+		if(m_vec[t] == 0)
 		{
-			vec[t] = vvec[i];
+			m_vec[t] = vvec[i];
 		}
 		else
 		{
@@ -341,9 +341,9 @@ void server::m_getpocketpoll()
 			tmp = vvec[i];
 			while(++t && t < 100)
 			{
-				if(vec[t] == 0)
+				if(m_vec[t] == 0)
 				{
-					vec[t] = tmp;
+					m_vec[t] = tmp;
 					break;
 				}
 				else
@@ -352,9 +352,9 @@ void server::m_getpocketpoll()
 			}
 			while(t == 100 && (--p >= 0))
 			{
-				if(vec[p] == 0)
+				if(m_vec[p] == 0)
 				{
-					vec[p] = tmp;
+					m_vec[p] = tmp;
 					break;
 				}
 				else
@@ -373,23 +373,23 @@ void server::m_getpocketpoll()
     // cout << "\n---------------\n";
 }
 
-void server::m_play(int* array) const 
+void CServer::Play(int* array) const 
 {
 	//get four number from vector by random
 	int pos;
 	for(int i=0;i < 4;++i)
 	{
 		pos = int(random(0, 101));
-		while(vec[pos] ==0) //这个bug以后在该
+		while(m_vec[pos] ==0) //这个bug以后在该
 		{
 			pos = int(random(0, 101));
 		}
-		array[i] = vec[pos];
+		array[i] = m_vec[pos];
 	}
 
 }
 
-int m_loginOK(server *serv, bool flag, int sockfd) 
+int LoginOK(CServer *serv, bool flag, int sockfd) 
 {
 	int cmd = 0x1001;
 	char buf[256];
@@ -409,10 +409,10 @@ int m_loginOK(server *serv, bool flag, int sockfd)
 	memcpy(buf+8, "000000", 6);
     buf[14] = cmd / 256;
     buf[15] = cmd % 256;
-	if(server::frame >= 65535)
-		server::frame = 0;
-    buf[16] = server::frame / 256;
-	buf[17] = server::frame % 256;
+	if(CServer::sm_frame >= 65535)
+		CServer::sm_frame = 0;
+    buf[16] = CServer::sm_frame / 256;
+	buf[17] = CServer::sm_frame % 256;
     buf[18] = sndlen / 256;
     buf[19] = sndlen % 256;
     memcpy(buf+20, snd, sndlen);
@@ -421,12 +421,12 @@ int m_loginOK(server *serv, bool flag, int sockfd)
 	buf[21+sndlen] = crc / 256;
 	buf[22 + sndlen] = crc % 256;
 	// cout << crc << "----" << 22 + sndlen << endl;
-	int ret = serv->m_tcpsend(sockfd, buf, 22+sndlen);
+	int ret = serv->TcpSend(sockfd, buf, 22+sndlen);
 	return ret;
 
 }
 
-int setLotteryOK(server* serv, int sockfd)
+int SetLotteryOK(CServer* serv, int sockfd)
 {
 	int cmd = 0x1002;
 	char buf[256];
@@ -440,10 +440,10 @@ int setLotteryOK(server* serv, int sockfd)
 	memcpy(buf+8, "000000", 6);
     buf[14] = cmd / 256;
     buf[15] = cmd % 256;
-	if(server::frame >= 65535)
-		server::frame = 0;
-    buf[16] = server::frame / 256;
-	buf[17] = server::frame % 256;
+	if(CServer::sm_frame >= 65535)
+		CServer::sm_frame = 0;
+    buf[16] = CServer::sm_frame / 256;
+	buf[17] = CServer::sm_frame % 256;
     buf[18] = sndlen / 256;
     buf[19] = sndlen % 256;
     memcpy(buf+20, snd, sndlen);
@@ -452,11 +452,11 @@ int setLotteryOK(server* serv, int sockfd)
 	buf[21+sndlen] = crc / 256;
 	buf[22 + sndlen] = crc % 256;
 	// cout << crc << "----" << 22 + sndlen << endl;
-	int ret = serv->m_tcpsend(sockfd, buf, 22+sndlen);
+	int ret = serv->TcpSend(sockfd, buf, 22+sndlen);
 	return ret;
 }
 
-int lotterytoclient(int* array, server* serv, int sockfd)
+int Lottery2Client(int* array, CServer* serv, int sockfd)
 {
 	int cmd = 0x1003;
 	char buf[256];
@@ -477,10 +477,10 @@ int lotterytoclient(int* array, server* serv, int sockfd)
 	memcpy(buf+8, "000000", 6);
     buf[14] = cmd / 256;
     buf[15] = cmd % 256;
-	if(server::frame >= 65535)
-		server::frame = 0;
-    buf[16] = server::frame / 256;
-	buf[17] = server::frame % 256;
+	if(CServer::sm_frame >= 65535)
+		CServer::sm_frame = 0;
+    buf[16] = CServer::sm_frame / 256;
+	buf[17] = CServer::sm_frame % 256;
     buf[18] = sndlen / 256;
     buf[19] = sndlen % 256;
     memcpy(buf+20, snd, sndlen);
@@ -489,12 +489,12 @@ int lotterytoclient(int* array, server* serv, int sockfd)
 	buf[21+sndlen] = crc / 256;
 	buf[22 + sndlen] = crc % 256;
 	// cout << crc << "----" << 22 + sndlen << endl;
-	int ret = serv->m_tcpsend(sockfd, buf, 22+sndlen);
+	int ret = serv->TcpSend(sockfd, buf, 22+sndlen);
 	return 0;
 	
 }
 
-int playend(server *serv, int sockfd)
+int PlayEnd(CServer *serv, int sockfd)
 {
 	int cmd = 0x1004;
 	char buf[256];
@@ -508,10 +508,10 @@ int playend(server *serv, int sockfd)
 	memcpy(buf+8, "000000", 6);
     buf[14] = cmd / 256;
     buf[15] = cmd % 256;
-	if(server::frame >= 65535)
-		server::frame = 0;
-    buf[16] = server::frame / 256;
-	buf[17] = server::frame % 256;
+	if(CServer::sm_frame >= 65535)
+		CServer::sm_frame = 0;
+    buf[16] = CServer::sm_frame / 256;
+	buf[17] = CServer::sm_frame % 256;
     buf[18] = sndlen / 256;
     buf[19] = sndlen % 256;
     memcpy(buf+20, snd, sndlen);
@@ -520,24 +520,24 @@ int playend(server *serv, int sockfd)
 	buf[21+sndlen] = crc / 256;
 	buf[22 + sndlen] = crc % 256;
 	// cout << crc << "----" << 22 + sndlen << endl;
-	int ret = serv->m_tcpsend(sockfd, buf, 22+sndlen);
+	int ret = serv->TcpSend(sockfd, buf, 22+sndlen);
 	return 0;
 
 }
 
-void server::initevent()
+void CServer::InitEvent()
 {
-	epfd = epoll_create(BACKLOG);
+	m_epfd = epoll_create(BACKLOG);
 	epoll_event event;
 	memset(&event, 0, sizeof(event));
 	event.data.fd = m_socket;  
     event.events = EPOLLIN;  
   
-    epoll_ctl( epfd, EPOLL_CTL_ADD, m_socket, &event );  
+    epoll_ctl( m_epfd, EPOLL_CTL_ADD, m_socket, &event );  
     setnonblock(m_socket);  
 }
 
-int addfd(server* serv, bool flag, int sockfd)
+int AddFd(CServer* serv, bool flag, int sockfd)
 {
 	epoll_event event;
 	//memset(&event, 0, sizeof(event));
@@ -547,18 +547,18 @@ int addfd(server* serv, bool flag, int sockfd)
     {  
         event.events |= EPOLLET;  
     }  
-    epoll_ctl(serv->epfd, EPOLL_CTL_ADD, sockfd, &event );  
+    epoll_ctl(serv->m_epfd, EPOLL_CTL_ADD, sockfd, &event );  
     setnonblock(sockfd);  
 }
 
-void deletefd(server* serv, int fd)
+void DeleteFd(CServer* serv, int fd)
 {
 	epoll_event event;
 	event.data.fd = fd;
-	epoll_ctl(serv->epfd, EPOLL_CTL_DEL, fd, &event);
+	epoll_ctl(serv->m_epfd, EPOLL_CTL_DEL, fd, &event);
 }
 
-void et(server* serv, int num)
+void ET(CServer* serv, int num)
 {
 	int ret = 0, cmd = 0, len = 0;
  	unsigned short  crc;
@@ -567,15 +567,15 @@ void et(server* serv, int num)
 
     for ( int i = 0; i < num; i++ )  
     {  
-        int sockfd = serv->events[i].data.fd;  
+        int sockfd = serv->m_events[i].data.fd;  
         if ( sockfd == serv->m_socket )  
         {  
             struct sockaddr_in client_address;  
             socklen_t client_addrlength = sizeof( client_address );  
             int clisock = accept(serv->m_socket, ( struct sockaddr* )&client_address, &client_addrlength );  
-            addfd(serv,true, clisock);
+            AddFd(serv,true, clisock);
         }  
-        else if ( serv->events[i].events & EPOLLIN )  
+        else if ( serv->m_events[i].events & EPOLLIN )  
         {  
 			//           printf( "event trigger\n" );
             for(;;)
@@ -583,17 +583,17 @@ void et(server* serv, int num)
 				
 				memset(buf, 0, sizeof(buf));
 				memset(content, 0, sizeof(content));
-				ret = serv->m_tcprecv(sockfd, buf, 2, -1); //recv start data
+				ret = serv->TcpRecv(sockfd, buf, 2, -1); //recv start data
 				if((ret != 2) || ((unsigned char)buf[0] != 0xFF) || ((unsigned char)buf[1] != 0xFF))
 				{
 
-					for(map<int, string>::iterator mapite = serv->user.begin(); mapite != serv->user.end(); ++mapite)
+					for(map<int, string>::iterator mapite = serv->m_user.begin(); mapite != serv->m_user.end(); ++mapite)
 					{
 						if(mapite->first == sockfd)
 						{
 							cout << "the user:" << mapite->second << " leaved\n" <<endl;
 							close(sockfd);
-							serv->user.erase(mapite);
+							serv->m_user.erase(mapite);
 							break;
 						}
 						//	cout << mapite->first << " " << mapite->second << endl;
@@ -601,26 +601,26 @@ void et(server* serv, int num)
 
 					break;
 				}
-				ret = serv->m_tcprecv(sockfd, buf+2, 6, -1);  //recv source addr
+				ret = serv->TcpRecv(sockfd, buf+2, 6, -1);  //recv source addr
 				if((ret != 6) || (strcmp(buf+2, "000000")!= 0))
 				{
 				    break;
 				}
-				ret = serv->m_tcprecv(sockfd, buf+8, 6, -1); //recv destination addr
+				ret = serv->TcpRecv(sockfd, buf+8, 6, -1); //recv destination addr
 				if((ret != 6)||(strncmp(buf+8, "111111", 6) != 0))
 				{
 					break;
 				}
-				ret = serv->m_tcprecv(sockfd, buf+14, 2, -1); //recv cmd
+				ret = serv->TcpRecv(sockfd, buf+14, 2, -1); //recv cmd
 				if(ret != 2)
 				{
 				    break;
 				}
 				cmd = (unsigned char)buf[14]*256 + (unsigned char)buf[15];	
-				ret = serv->m_tcprecv(sockfd, buf+16, 2, -1); //recv message num
-				ret = serv->m_tcprecv(sockfd, buf+18, 2, -1); //the length content
+				ret = serv->TcpRecv(sockfd, buf+16, 2, -1); //recv message num
+				ret = serv->TcpRecv(sockfd, buf+18, 2, -1); //the length content
 				len = (unsigned char)buf[18]*256 + (unsigned char)buf[19];
-				ret = serv->m_tcprecv(sockfd, buf+20, len+2, -1);  //the last data
+				ret = serv->TcpRecv(sockfd, buf+20, len+2, -1);  //the last data
 				crc = crc_check2(buf+2, len+18);
 				unsigned short crc2 = (unsigned char)buf[21 + len]*256 + (unsigned char)buf[22 + len];
 				// cout << crc <<"====" <<crc2 << endl;
@@ -637,14 +637,14 @@ void et(server* serv, int num)
 						printf( "read later\n" );
 						break;
 					}
-					cout << "the user:"<<(char*)serv->events[i].data.ptr << " login out\n";
+					cout << "the user:"<<(char*)serv->m_events[i].data.ptr << " login out\n";
 					close(sockfd);
 					//	deletefd(serv, sockfd);
 					break;
 				}  
 				else if( ret == 0 )  
 				{
-					cout << "the user:"<<(char*)serv->events[i].data.ptr << " login out\n";
+					cout << "the user:"<<(char*)serv->m_events[i].data.ptr << " login out\n";
 					close(sockfd);
 					//	deletefd(serv, sockfd);
 					break;
@@ -653,13 +653,13 @@ void et(server* serv, int num)
 				switch(cmd)
 				{
 				case 0x0001:
-					m_varylogin(content, serv, i,sockfd);
+					VaryLogin(content, serv, i,sockfd);
 					break;
 				case 0x0002:
-					m_setlottery(content, serv, sockfd);
+					SetLottery(content, serv, sockfd);
 					break;
 				case 0x0003:
-					m_sendlottery(content, serv,sockfd);
+					SendLottery(content, serv,sockfd);
 					break;
 				default:
 					break;

@@ -1,4 +1,4 @@
-#include "client.h"
+#include "CClient.h"
 
 int main(int argc, char *argv[])
 {
@@ -7,12 +7,12 @@ int main(int argc, char *argv[])
 	//	
 	msgqid = msgq_init("./", 1, (int)IPC_CREAT|0666);
 	//	cout << msgqid <<endl;
-	client cli;
-	cli.readconf("./config/client.ini");
+	CClient cli;
+	cli.ReadConf("./config/client.ini");
 	// cli.m_recvthrdstart(&cli);
 	while(1)
 	{
-		ret = cli.m_connect();
+		ret = cli.ConnServer();
 		if(ret != 0)
 		{
 			sleep(1);     
@@ -31,22 +31,22 @@ int main(int argc, char *argv[])
 		}
 		break;
 	}
-	cli.m_recvthrdstart(&cli);
+	cli.RecvThrdStart(&cli);
 	sleep(2);
 	do
 	{
-		ret = cli.m_loginserver(0x0001);
+		ret = cli.LoginServer(0x0001);
 		if(ret < 0)
 		{
 			cout << "login send error\n";
 			continue;
 		}
-		msgq_rcv(msgqid, &(cli.msg), sizeof(cli.msg), 1, 0);
-		string s = cli.msg.msgtext;
+		msgq_rcv(msgqid, &(cli.m_msg), sizeof(cli.m_msg), 1, 0);
+		string s = cli.m_msg.msgtext;
 		if(s.find("login_OK") == string::npos)
 		{
 			cout << "the defult user name or passwd is not correct, please try to input username and passwd correctly:\n";
-			cin >> cli.username >> cli.passwd;
+			cin >> cli.m_username >> cli.m_passwd;
 			continue;
 		}
 		else 
@@ -57,18 +57,18 @@ int main(int argc, char *argv[])
 	do
 	{
 		cout << "start to play the game...\n";
-		cli.m_setLottery(0x0002);
-		msgq_rcv(msgqid, &cli.msg, sizeof(cli.msg), 2, 0);
-		string s = cli.msg.msgtext;
+		cli.SetLottery(0x0002);
+		msgq_rcv(msgqid, &cli.m_msg, sizeof(cli.m_msg), 2, 0);
+		string s = cli.m_msg.msgtext;
 		if(s.find("set") == string::npos)
 		{
 			cout << "please input lotterynum and interval:\n";
 			cin >> cli.m_lotterynum >> cli.m_lotteryinterval;
 			continue;
 		}
-		cli.m_getLottery(0x0003);
-		msgq_rcv(msgqid, &cli.msg, sizeof(cli.msg), 3, 0);
-		string s2 = cli.msg.msgtext;
+		cli.GetLottery(0x0003);
+		msgq_rcv(msgqid, &cli.m_msg, sizeof(cli.m_msg), 3, 0);
+		string s2 = cli.m_msg.msgtext;
 		
 		if(s2.find("end") != string::npos)
 		{

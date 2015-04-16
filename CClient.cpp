@@ -1,22 +1,22 @@
-#include "client.h"
+#include "CClient.h"
 
-int client::frame = 0; //static type must init here
+int CClient::sm_frame = 0; //static type must init here
 bool loginflag = false;
 int msgqid = 0;
 
-void client::readconf(const char* file)
+void CClient::ReadConf(const char* file)
 {
 	string servip = readconfig(file, "net", "servip", "127.0.0.1");
 	string servport = readconfig(file, "net", "servport", "8888");
-	username = readconfig(file, "user", "name", "haha");
-	passwd = readconfig(file, "user", "passwd", "1234");
+	m_username = readconfig(file, "user", "name", "haha");
+	m_passwd = readconfig(file, "user", "passwd", "1234");
 	m_lotterynum = readconfig(file, "set", "lotterynum", "5");
     m_lotteryinterval = readconfig(file, "set", "lotteryinterval", "3");
     m_ip = const_cast<char*>(servip.c_str());
 	m_port = atoi(servport.c_str());
    
 }
-int client::m_connect()
+int CClient::ConnServer()
 {
 	struct sockaddr_in sin;
 	memset(&sin, 0, sizeof(sin));
@@ -33,16 +33,16 @@ int client::m_connect()
 	cout << "connect server ok\n";
 }
 
-int client::m_setlotteryinter(int interval)
+int CClient::SetLotInterval(int interval)
 {
 	m_lotteryinterval = interval;
 }
-int client::m_setlottnum(int num)
+int CClient::SetLotNum(int num)
 {
 	m_lotterynum = num;
 }
 
-int client::m_tcprecv(char *recvbuf, int len, int timeout)
+int CClient::TcpRecv(char *recvbuf, int len, int timeout)
 {
 	if(NULL == recvbuf || len <=0 )
 		return -1;
@@ -74,7 +74,7 @@ int client::m_tcprecv(char *recvbuf, int len, int timeout)
 	return (ret > 0)?ret :-2;
 }
 
-int client::m_tcpsend(char *sendbuf, int len) const
+int CClient::TcpSend(char *sendbuf, int len) const
 {
 	if(NULL == sendbuf || len <=0)
 		return -1;
@@ -99,12 +99,12 @@ int client::m_tcpsend(char *sendbuf, int len) const
 	return send_tol;
 }
 
-int client::m_loginserver(int cmd) const
+int CClient::LoginServer(int cmd) const
 {
 	//	int cmd = 0x0001;
     char buf[256];
 	memset(buf, 0, 256);
-	string sndstring = username + "|" + passwd;
+	string sndstring = m_username + "|" + m_passwd;
 	char *snd = const_cast<char*>(sndstring.c_str());
 	int sndlen = strlen(snd);
 	buf[0] = 0xff;
@@ -113,10 +113,10 @@ int client::m_loginserver(int cmd) const
 	memcpy(buf+8, "111111", 6);
     buf[14] = cmd / 256;
     buf[15] = cmd % 256;
-	if(client::frame >= 65535)
-		client::frame = 0;
-    buf[16] = client::frame / 256;
-	buf[17] = client::frame % 256;
+	if(CClient::sm_frame >= 65535)
+		CClient::sm_frame = 0;
+    buf[16] = CClient::sm_frame / 256;
+	buf[17] = CClient::sm_frame % 256;
     buf[18] = sndlen / 256;
     buf[19] = sndlen % 256;
     memcpy(buf+20, snd, sndlen);
@@ -125,12 +125,12 @@ int client::m_loginserver(int cmd) const
 	buf[21+sndlen] = crc / 256;
 	buf[22 + sndlen] = crc % 256;
 // cout << crc << "----" << 22 + sndlen << endl;
-   int ret = m_tcpsend(buf, 22+sndlen);
+   int ret = TcpSend(buf, 22+sndlen);
    return ret;
 
 }
 
-int client::m_setLottery(int cmd) const
+int CClient::SetLottery(int cmd) const
 {
 	//	int cmd = 0x0002;
     char buf[256];
@@ -145,10 +145,10 @@ int client::m_setLottery(int cmd) const
 	memcpy(buf+8, "111111", 6);
     buf[14] = cmd / 256;
     buf[15] = cmd % 256;
-	if(client::frame >= 65535)
-		client::frame = 0;
-    buf[16] = client::frame / 256;
-	buf[17] = client::frame % 256;
+	if(CClient::sm_frame >= 65535)
+		CClient::sm_frame = 0;
+    buf[16] = CClient::sm_frame / 256;
+	buf[17] = CClient::sm_frame % 256;
     buf[18] = sndlen / 256;
     buf[19] = sndlen % 256;
     memcpy(buf+20, snd, sndlen);
@@ -157,12 +157,12 @@ int client::m_setLottery(int cmd) const
 	buf[21+sndlen] = crc / 256;
 	buf[22 + sndlen] = crc % 256;
 	// cout << crc << "----" << 22 + sndlen << endl;
-	int ret = m_tcpsend(buf, 22+sndlen);
+	int ret = TcpSend(buf, 22+sndlen);
 	return ret;
 	
 }
 
-int client::m_getLottery(int cmd) const
+int CClient::GetLottery(int cmd) const
 {
 	//	int cmd = 0x0002;
     char buf[256];
@@ -175,10 +175,10 @@ int client::m_getLottery(int cmd) const
 	memcpy(buf+8, "111111", 6);
     buf[14] = cmd / 256;
     buf[15] = cmd % 256;
-	if(client::frame >= 65535)
-		client::frame = 0;
-    buf[16] = client::frame / 256;
-	buf[17] = client::frame % 256;
+	if(CClient::sm_frame >= 65535)
+		CClient::sm_frame = 0;
+    buf[16] = CClient::sm_frame / 256;
+	buf[17] = CClient::sm_frame % 256;
     buf[18] = sndlen / 256;
     buf[19] = sndlen % 256;
     memcpy(buf+20, snd, sndlen);
@@ -187,14 +187,14 @@ int client::m_getLottery(int cmd) const
 	buf[21+sndlen] = crc / 256;
 	buf[22 + sndlen] = crc % 256;
 	// cout << crc << "----" << 22 + sndlen << endl;
-	int ret = m_tcpsend(buf, 22+sndlen);
+	int ret = TcpSend(buf, 22+sndlen);
 	return ret;
 	
 }
 
-void recvthrdfunc(void *arg)
+void RecvThrdFunc(void *arg)
 {
-	client *cli = (client*) arg;
+	CClient *cli = (CClient*) arg;
 	int ret = 0, cmd = 0, len = 0;
 	unsigned short  crc;
 	char buf[1024];
@@ -210,32 +210,32 @@ void recvthrdfunc(void *arg)
 			//paser the data  message
 			memset(buf, 0, sizeof(buf));
 			memset(content, 0, sizeof(content));
-			ret = cli->m_tcprecv( buf, 2, -1); //recv start data
+			ret = cli->TcpRecv( buf, 2, -1); //recv start data
 			if((ret != 2) || ((unsigned char)buf[0] != 0xFF) || ((unsigned char)buf[1] != 0xFF))
 			{
 				break;
 			}
 			// bzero(buf, sizeof(buf));
-			ret = cli->m_tcprecv( buf+2, 6, -1);  //recv source addr
+			ret = cli->TcpRecv( buf+2, 6, -1);  //recv source addr
 			if((ret != 6) || (strcmp(buf+2, "111111")!= 0))
 			{
 				break;
 			}
-			ret = cli->m_tcprecv( buf+8, 6, -1); //recv destination addr
+			ret = cli->TcpRecv( buf+8, 6, -1); //recv destination addr
 			if((ret != 6)||(strncmp(buf+8, "000000", 6) != 0))
 			{
    				break;
 			}
-			ret = cli->m_tcprecv(buf+14, 2, -1); //recv cmd
+			ret = cli->TcpRecv(buf+14, 2, -1); //recv cmd
 			if(ret != 2)
 			{
 				break;
 			}
 			cmd = (unsigned char)buf[14]*256 + (unsigned char)buf[15];	
-			ret = cli->m_tcprecv( buf+16, 2, -1); //recv message num
-			ret = cli->m_tcprecv( buf+18, 2, -1); //the length content
+			ret = cli->TcpRecv( buf+16, 2, -1); //recv message num
+			ret = cli->TcpRecv( buf+18, 2, -1); //the length content
 			len = (unsigned char)buf[18]*256 + (unsigned char)buf[19];
-			ret = cli->m_tcprecv(buf+20, len+2, -1);  //the last data
+			ret = cli->TcpRecv(buf+20, len+2, -1);  //the last data
 			crc = crc_check2(buf+2, len+18);
 			unsigned short crc2 = (unsigned char)buf[21 + len]*256 + (unsigned char)buf[22 + len];
 			// cout << crc <<"====" <<crc2 << endl;
@@ -250,15 +250,15 @@ void recvthrdfunc(void *arg)
 			switch(cmd)
 			{
 			case 0x1001:
-				cli->varyloginOK(cli, content);
+				cli->VaryLoginOK(cli, content);
 				break;
 			case 0x1002:
-			    cli->varysetlotOK(cli, content);
+			    cli->VarySetLotOK(cli, content);
 				break;
 			case 0x1003:
-				cli->varygetlottery(content);
+				cli->VaryGetLottery(content);
 			case 0x1004:
-				cli->varyplayend(cli, content);
+				cli->VaryPlayEnd(cli, content);
 			default:
 				break;
 			}
@@ -278,27 +278,27 @@ void recvthrdfunc(void *arg)
 				sin.sin_port = htons(cli->m_port);
 				continue;
 			}
-			cli->m_connect();
+			cli->ConnServer();
   		}
 	
 	} while (1);
 	
 }
 
-void client::m_recvthrdstart(client* cli)
+void CClient::RecvThrdStart(CClient* cli)
 {
-	thread_create(&pid, (void*)recvthrdfunc, cli, 1);
+	thread_create(&m_pid, (void*)RecvThrdFunc, cli, 1);
 }
 
-void client::varyloginOK(client* cli, char * buf)
+void CClient::VaryLoginOK(CClient* cli, char * buf)
 {
 	string login = buf;
-    cli->msg.mytype = 1;
-	strcpy(cli->msg.msgtext, buf);	
+    cli->m_msg.mytype = 1;
+	strcpy(cli->m_msg.msgtext, buf);	
 	if(login == "login_OK")
 	{
 		loginflag = true;
-	    int ret = msgq_send(msgqid, &cli->msg, sizeof(cli->msg), 0);
+	    int ret = msgq_send(msgqid, &cli->m_msg, sizeof(cli->m_msg), 0);
 		if(ret < 0)
 		{
 			cout << __LINE__<<":msgq_send error\n";
@@ -307,7 +307,7 @@ void client::varyloginOK(client* cli, char * buf)
 	else if(login == "login_ERROR")
 	{
 
-		int ret = msgq_send(msgqid, &cli->msg, sizeof(cli->msg), 0);
+		int ret = msgq_send(msgqid, &cli->m_msg, sizeof(cli->m_msg), 0);
 		if(ret < 0)
 		{
 			cout << __LINE__<<":msgq_send error\n";
@@ -318,14 +318,14 @@ void client::varyloginOK(client* cli, char * buf)
 	}
 }
 
-void client::varysetlotOK(client* cli, char * buf)
+void CClient::VarySetLotOK(CClient* cli, char * buf)
 {
 	string login = buf;
-	cli->msg.mytype = 2;
-	strcpy(cli->msg.msgtext, buf);
+	cli->m_msg.mytype = 2;
+	strcpy(cli->m_msg.msgtext, buf);
 	if(login == "set ok")
 	{
-		int ret = msgq_send(msgqid, &cli->msg, sizeof(cli->msg), 0);
+		int ret = msgq_send(msgqid, &cli->m_msg, sizeof(cli->m_msg), 0);
 		if(ret < 0)
 		{
 			cout << __LINE__<<":msgq_send error\n";
@@ -337,7 +337,7 @@ void client::varysetlotOK(client* cli, char * buf)
 	}
 }
 
-void client::varygetlottery(char *buf) const
+void CClient::VaryGetLottery(char *buf) const
 {
    	cout << buf << endl;
 	string s = buf;
@@ -351,14 +351,14 @@ void client::varygetlottery(char *buf) const
 	//	cout << "get lottery ok\n";
 }
 
-void client::varyplayend(client *cli, char *buf)
+void CClient::VaryPlayEnd(CClient *cli, char *buf)
 {
 	string s = buf;
-    cli->msg.mytype = 3;
-	strcpy(cli->msg.msgtext, buf);
+    cli->m_msg.mytype = 3;
+	strcpy(cli->m_msg.msgtext, buf);
 	if(s == "end")
 	{
-		int ret = msgq_send(msgqid, &cli->msg, sizeof(cli->msg), 0);
+		int ret = msgq_send(msgqid, &cli->m_msg, sizeof(cli->m_msg), 0);
 		if(ret < 0)
 		{
 			cout << "msgq_send error\n";
