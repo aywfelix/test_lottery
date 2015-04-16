@@ -593,6 +593,7 @@ void et(server* serv, int num)
 						{
 							cout << "the user:" << mapite->second << " leaved\n" <<endl;
 							close(sockfd);
+							serv->user.erase(mapite);
 							break;
 						}
 						//	cout << mapite->first << " " << mapite->second << endl;
