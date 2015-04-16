@@ -28,6 +28,7 @@
 const int MAX_NUM = 200;
 const int BACKLOG = 10;
 //默认服务器端 ip 127.0.0.1 port 9999
+
 class server
 {
 public:
@@ -36,6 +37,7 @@ public:
 	int m_socket;
 	static int frame;
 	map<string, string> userpwd; //保存用户名和密码,密码暂用明文
+	map<int, string> user;
 	int lotterynum;
 	int lotteryinterval;
 	server()
@@ -73,7 +75,6 @@ public:
 private:
 	char *m_ip;
 	int m_port;
-
 	vector<int> vec; //pocket pool
 	char recvbuf[1024];
 	char sendbuf[1024];
@@ -81,14 +82,15 @@ private:
 	pthread_mutex_t m_mutex;
 };
 
-int m_loginOK(server* serv, bool flag);
-int setlottery(char* buf, server* serv);
-int m_varylogin(char *buf, server* serv);
-int setLotteryOK(server* serv);
-int lotterytoclient(int* array, server* serv);
-int playend(server* serv);
-int addfd(server* serv, bool flag);
+int m_loginOK(server* serv, bool flag, int sockfd);
+int setlottery(char* buf, server* serv, int sockfd);
+int m_varylogin(char *buf, server* serv ,int i, int sockfd);
+int setLotteryOK(server* serv, int sockfd);
+int lotterytoclient(int* array, server* serv, int sockfd);
+int playend(server* serv, int sockfd);
+int addfd(server* serv, bool flag, int sockfd);
 void et(server* serv, int num);
+void deletefd(server* serv, int fd);
 #endif
 
 

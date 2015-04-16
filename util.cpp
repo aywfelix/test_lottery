@@ -233,8 +233,8 @@ extern int str2num(string& s)
 extern int msgq_init(const char *filename, int id, int msgflag)
 {
 	int ret = 0;
-	ret = msgget(ftok(filename, id), msgflag);
-	
+	//	ret = msgget(ftok(filename, id), msgflag);
+	ret = msgget(IPC_PRIVATE, msgflag);
 	return ret;	
 }
 /********************************* 

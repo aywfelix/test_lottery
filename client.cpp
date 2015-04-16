@@ -301,7 +301,7 @@ void client::varyloginOK(client* cli, char * buf)
 	    int ret = msgq_send(msgqid, &cli->msg, sizeof(cli->msg), 0);
 		if(ret < 0)
 		{
-			cout << "msgq_send error\n";
+			cout << __LINE__<<":msgq_send error\n";
 		}
 	}
 	else if(login == "login_ERROR")
@@ -310,7 +310,7 @@ void client::varyloginOK(client* cli, char * buf)
 		int ret = msgq_send(msgqid, &cli->msg, sizeof(cli->msg), 0);
 		if(ret < 0)
 		{
-			cout << "msgq_send error\n";
+			cout << __LINE__<<":msgq_send error\n";
 		}
 	    loginflag = false;
 		// close(m_socket);
@@ -328,7 +328,7 @@ void client::varysetlotOK(client* cli, char * buf)
 		int ret = msgq_send(msgqid, &cli->msg, sizeof(cli->msg), 0);
 		if(ret < 0)
 		{
-			cout << "msgq_send error\n";
+			cout << __LINE__<<":msgq_send error\n";
 		}
 	}
 	else

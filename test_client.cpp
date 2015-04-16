@@ -6,6 +6,7 @@ int main(int argc, char *argv[])
 	int ret;
 	//	
 	msgqid = msgq_init("./", 1, (int)IPC_CREAT|0666);
+	cout << msgqid <<endl;
 	client cli;
 	cli.readconf("./config/client.ini");
 	// cli.m_recvthrdstart(&cli);
@@ -14,7 +15,7 @@ int main(int argc, char *argv[])
 		ret = cli.m_connect();
 		if(ret != 0)
 		{
-			sleep(1);
+			sleep(1);     
 			close(cli.m_socket);
 			cli.m_socket = socket(AF_INET, SOCK_STREAM, 0);
 			if(cli.m_socket)

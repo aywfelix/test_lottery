@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
 
 	//	serv.m_recvthrdstart(&serv); //start thread to recv client data
     cout << "server start to accept client...\n";
-	int clisock = -1;
+	//	int clisock = -1;
 
     for(;;)
 	{
