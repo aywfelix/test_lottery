@@ -35,6 +35,7 @@ public:
 	epoll_event m_events[MAX_NUM];
 	int m_epfd;
 	int m_socket;
+	int m_clisock;
 	static int sm_frame;
 	map<string, string> m_userpwd; //保存用户名和密码,密码暂用明文
 	map<int, string> m_user;
@@ -88,7 +89,7 @@ int VaryLogin(char *buf, CServer* serv ,int i, int sockfd);
 int SetLotteryOK(CServer* serv, int sockfd);
 int Lottery2Client(int* array, CServer* serv, int sockfd);
 int PlayEnd(CServer* serv, int sockfd);
-int AddFd(CServer* serv, bool flag, int sockfd);
+int AddFd(CServer* serv, bool flag);
 void ET(CServer* serv, int num);
 void DeleteFd(CServer* serv, int fd);
 #endif

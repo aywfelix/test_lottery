@@ -537,18 +537,18 @@ void CServer::InitEvent()
     setnonblock(m_socket);  
 }
 
-int AddFd(CServer* serv, bool flag, int sockfd)
+int AddFd(CServer* serv, bool flag)
 {
 	epoll_event event;
 	//memset(&event, 0, sizeof(event));
-    event.data.fd = sockfd;
+    event.data.fd = serv->m_clisock;
     event.events = EPOLLIN;  
     if( flag )  
     {  
         event.events |= EPOLLET;  
     }  
-    epoll_ctl(serv->m_epfd, EPOLL_CTL_ADD, sockfd, &event );  
-    setnonblock(sockfd);  
+    epoll_ctl(serv->m_epfd, EPOLL_CTL_ADD, serv->m_clisock, &event );  
+    setnonblock(serv->m_clisock);  
 }
 
 void DeleteFd(CServer* serv, int fd)
@@ -572,8 +572,8 @@ void ET(CServer* serv, int num)
         {  
             struct sockaddr_in client_address;  
             socklen_t client_addrlength = sizeof( client_address );  
-            int clisock = accept(serv->m_socket, ( struct sockaddr* )&client_address, &client_addrlength );  
-            AddFd(serv,true, clisock);
+            serv->m_clisock = accept(serv->m_socket, ( struct sockaddr* )&client_address, &client_addrlength );  
+            AddFd(serv,true);
         }  
         else if ( serv->m_events[i].events & EPOLLIN )  
         {  
