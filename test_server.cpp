@@ -3,6 +3,12 @@
 int main(int argc, char *argv[])
 {
 	signal(SIGPIPE,SIG_IGN);
+    int ret = checkeprogram("ps -ef| grep test_server", "./test_server");
+	if(ret == 1)
+	{
+		cout << "the program already exist\n";
+		return -1;
+	}
     CServer serv;
 	serv.ReadConf("./config/server.ini");
 	serv.GetPocketPool();
