@@ -92,7 +92,7 @@ int PlayEnd(CServer* serv, int sockfd);
 int AddFd(CServer* serv, bool flag);
 void ET(CServer* serv, int num);
 void DeleteFd(CServer* serv, int fd);
-
+int RecvDeal(CServer* serv, int sockfd, char* buf, int& cmd, int& len);
 #endif
 
 

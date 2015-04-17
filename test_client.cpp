@@ -3,12 +3,7 @@
 int main(int argc, char *argv[])
 {
 	signal(SIGPIPE,SIG_IGN);
-	int ret = checkeprogram("ps -ef| grep test_client", "./test_client");
-	if(ret == 1)
-	{
-		cout << "the program already exist\n";
-		return -1;
-	}
+	int ret = 0;
 
 	msgqid = msgq_init("./", 1, (int)IPC_CREAT|0666);
 	//	cout << msgqid <<endl;

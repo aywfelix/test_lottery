@@ -481,78 +481,28 @@ void RecvThrdFunc(void* arg)
    	CServer *serv = (CServer*)arg;
 	int sockfd = serv->m_TmpSock;
 	int ret = 0, cmd = 0, len = 0;
- 	unsigned short  crc;
     char buf[1024], content[256];
-	for(;;)
-	{ 
-				
+
 		memset(buf, 0, sizeof(buf));
 		memset(content, 0, sizeof(content));
-		ret = serv->TcpRecv(sockfd, buf, 2, -1); //recv start data
-		if((ret != 2) || ((unsigned char)buf[0] != 0xFF) || ((unsigned char)buf[1] != 0xFF))
-		{
-
-			mutex_lock(&(serv->m_mutex));
-			for(map<int, string>::iterator mapite = serv->m_user.begin(); mapite != serv->m_user.end(); ++mapite)
-			{
-				if(mapite->first == sockfd)
-				{
-					cout << "the user:" << mapite->second << " leaved\n" <<endl;
-					close(sockfd);
-					serv->m_user.erase(mapite);
-					break;
-				}
-				//	cout << mapite->first << " " << mapite->second << endl;
-			}
-            mutex_unlock(&(serv->m_mutex));
-			break;
-		}
-		ret = serv->TcpRecv(sockfd, buf+2, 6, -1);  //recv source addr
-		if((ret != 6) || (strcmp(buf+2, "000000")!= 0))
-		{
-			break;
-		}
-		ret = serv->TcpRecv(sockfd, buf+8, 6, -1); //recv destination addr
-		if((ret != 6)||(strncmp(buf+8, "111111", 6) != 0))
-		{
-			break;
-		}
-		ret = serv->TcpRecv(sockfd, buf+14, 2, -1); //recv cmd
-		if(ret != 2)
-		{
-			break;
-		}
-		cmd = (unsigned char)buf[14]*256 + (unsigned char)buf[15];	
-		ret = serv->TcpRecv(sockfd, buf+16, 2, -1); //recv message num
-		ret = serv->TcpRecv(sockfd, buf+18, 2, -1); //the length content
-		len = (unsigned char)buf[18]*256 + (unsigned char)buf[19];
-		ret = serv->TcpRecv(sockfd, buf+20, len+2, -1);  //the last data
-		crc = crc_check2(buf+2, len+18);
-		unsigned short crc2 = (unsigned char)buf[20 + len]*256 + (unsigned char)buf[21 + len];
-		// cout << crc <<"====" <<crc2 << endl;
-		// cout << 22 + len << endl;
-		if(crc != crc2)
-		{
-			perror("crc error");
-			break ;
-		}
+		ret = RecvDeal(serv, sockfd, buf, cmd, len);
 		if( ret < 0 )  
 		{  
 			if( ( errno == EAGAIN ) || ( errno == EWOULDBLOCK ) )  
 			{  
 				printf( "read later\n" );
-				break;
+				return;
 			}
 			close(sockfd);
-			//	deletefd(serv, m_TmpSock);
-			break;
+		   	DeleteFd(serv, sockfd);
+			return;
 		}  
 		else if( ret == 0 )  
 		{
 			close(sockfd);
-			//	deletefd(serv, m_TmpSock);
-			break;
-		}  
+		   	DeleteFd(serv, sockfd);
+			return;
+		}
 		memcpy(content, buf+20, len);
 		switch(cmd)
 		{
@@ -568,11 +518,58 @@ void RecvThrdFunc(void* arg)
 		default:
 			break;
 		}
-		break;
-	}
 
 }
 
+int RecvDeal(CServer* serv, int sockfd, char* buf, int& cmd, int& len)
+{
+	int ret = 0;
+	ret = serv->TcpRecv(sockfd, buf, 2, -1); //recv start data
+	if((ret != 2) || ((unsigned char)buf[0] != 0xFF) || ((unsigned char)buf[1] != 0xFF))
+	{
+
+		mutex_lock(&(serv->m_mutex));
+		for(map<int, string>::iterator mapite = serv->m_user.begin(); mapite != serv->m_user.end(); ++mapite)
+		{
+			if(mapite->first == sockfd)
+			{
+				cout << "the user:" << mapite->second << " leaved\n" <<endl;
+				serv->m_user.erase(mapite);
+				break;
+			}
+		}
+		mutex_unlock(&(serv->m_mutex));
+		return ret;
+	}
+	ret = serv->TcpRecv(sockfd, buf+2, 6, -1);  //recv source addr
+	if((ret != 6) || (strcmp(buf+2, "000000")!= 0))
+	{
+		return ret;
+	}
+	ret = serv->TcpRecv(sockfd, buf+8, 6, -1); //recv destination addr
+	if((ret != 6)||(strncmp(buf+8, "111111", 6) != 0))
+	{
+		return ret;
+	}
+	ret = serv->TcpRecv(sockfd, buf+14, 2, -1); //recv cmd
+	if(ret != 2)
+	{
+		return ret;
+	}
+	cmd = (unsigned char)buf[14]*256 + (unsigned char)buf[15];	
+	ret = serv->TcpRecv(sockfd, buf+16, 2, -1); //recv message num
+	ret = serv->TcpRecv(sockfd, buf+18, 2, -1); //the length content
+	len = (unsigned char)buf[18]*256 + (unsigned char)buf[19];
+	ret = serv->TcpRecv(sockfd, buf+20, len+2, -1);  //the last data
+	unsigned short crc = crc_check2(buf+2, len+18);
+	unsigned short crc2 = (unsigned char)buf[20 + len]*256 + (unsigned char)buf[21 + len];
+	if(crc != crc2)
+	{
+		perror("crc error");
+		return -1;
+	}
+	return ret;
+}
 void RecvThrd(CServer* serv)
 {
 	thread_create(&(serv->m_pid), (void*)RecvThrdFunc, serv, 1);
