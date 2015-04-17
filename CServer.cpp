@@ -283,12 +283,6 @@ void CServer::GetPocketPool()
 		
 	}
 
-	// for(int i=0;i != 100; ++i)
-	// {
-	// 	cout << vec[i] << " ";
-	// }
-	// cout<<"\n"<< vec.size();
-    // cout << "\n---------------\n";
 }
 
 void CServer::Play(int* array) const 
@@ -338,7 +332,7 @@ int LoginOK(CServer *serv, bool flag, int sockfd)
     unsigned short crc = crc_check2(buf+2, 18+sndlen);
 	buf[20+sndlen] = crc / 256;
 	buf[21 + sndlen] = crc % 256;
-	// cout << crc << "----" << 22 + sndlen << endl;
+
 	int ret = serv->TcpSend(sockfd, buf, 22+sndlen);
 	return ret;
 
@@ -369,7 +363,7 @@ int SetLotteryOK(CServer* serv, int sockfd)
     unsigned short crc = crc_check2(buf+2, 18+sndlen);
 	buf[20+sndlen] = crc / 256;
 	buf[21 + sndlen] = crc % 256;
-	// cout << crc << "----" << 22 + sndlen << endl;
+
 	int ret = serv->TcpSend(sockfd, buf, 22+sndlen);
 	return ret;
 }
@@ -406,7 +400,7 @@ int Lottery2Client(int* array, CServer* serv, int sockfd)
     unsigned short crc = crc_check2(buf+2, 18+sndlen);
 	buf[20+sndlen] = crc / 256;
 	buf[21 + sndlen] = crc % 256;
-	// cout << crc << "----" << 22 + sndlen << endl;
+
 	int ret = serv->TcpSend(sockfd, buf, 22+sndlen);
 	return 0;
 	
@@ -437,7 +431,7 @@ int PlayEnd(CServer *serv, int sockfd)
     unsigned short crc = crc_check2(buf+2, 18+sndlen);
 	buf[20+sndlen] = crc / 256;
 	buf[21 + sndlen] = crc % 256;
-	// cout << crc << "----" << 22 + sndlen << endl;
+
 	int ret = serv->TcpSend(sockfd, buf, 22+sndlen);
 	return 0;
 
@@ -458,7 +452,6 @@ void CServer::InitEvent()
 int AddFd(CServer* serv, bool flag)
 {
 	epoll_event event;
-	//memset(&event, 0, sizeof(event));
     event.data.fd = serv->m_clisock;
     event.events = EPOLLIN;  
     if( flag )  
@@ -483,41 +476,42 @@ void RecvThrdFunc(void* arg)
 	int ret = 0, cmd = 0, len = 0;
     char buf[1024], content[256];
 
-		memset(buf, 0, sizeof(buf));
-		memset(content, 0, sizeof(content));
-		ret = RecvDeal(serv, sockfd, buf, cmd, len);
-		if( ret < 0 )  
+	memset(buf, 0, sizeof(buf));
+	memset(content, 0, sizeof(content));
+	
+	ret = RecvDeal(serv, sockfd, buf, cmd, len);
+	if( ret < 0 )  
+	{  
+		if( ( errno == EAGAIN ) || ( errno == EWOULDBLOCK ) )  
 		{  
-			if( ( errno == EAGAIN ) || ( errno == EWOULDBLOCK ) )  
-			{  
-				printf( "read later\n" );
-				return;
-			}
-			close(sockfd);
-		   	DeleteFd(serv, sockfd);
-			return;
-		}  
-		else if( ret == 0 )  
-		{
-			close(sockfd);
-		   	DeleteFd(serv, sockfd);
+			printf( "read later\n" );
 			return;
 		}
-		memcpy(content, buf+20, len);
-		switch(cmd)
-		{
-		case 0x0001:
-			VaryLogin(content, serv, sockfd);
-			break;
-		case 0x0002:
-			SetLottery(content, serv, sockfd);
-			break;
-		case 0x0003:
-			SendLottery(content, serv,sockfd);
-			break;
-		default:
-			break;
-		}
+		close(sockfd);
+		DeleteFd(serv, sockfd);
+		return;
+	}  
+	else if( ret == 0 )  
+	{
+		close(sockfd);
+		DeleteFd(serv, sockfd);
+		return;
+	}
+	memcpy(content, buf+20, len);
+	switch(cmd)
+	{
+	case 0x0001:
+		VaryLogin(content, serv, sockfd);
+		break;
+	case 0x0002:
+		SetLottery(content, serv, sockfd);
+		break;
+	case 0x0003:
+		SendLottery(content, serv,sockfd);
+		break;
+	default:
+		break;
+	}
 
 }
 
@@ -590,7 +584,6 @@ void ET(CServer* serv, int num)
         else if ( serv->m_events[i].events & EPOLLIN )  
         {
 			serv->m_TmpSock = sockfd;
-			//RecvParse(serv);
 			RecvThrd(serv);
 		}
 		else

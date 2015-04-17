@@ -124,7 +124,7 @@ int CClient::LoginServer(int cmd) const
     unsigned short crc = crc_check2(buf+2, 18+sndlen);
 	buf[20+sndlen] = crc / 256;
 	buf[21 + sndlen] = crc % 256;
-// cout << crc << "----" << 22 + sndlen << endl;
+
    int ret = TcpSend(buf, 22+sndlen);
    return ret;
 
@@ -156,7 +156,7 @@ int CClient::SetLottery(int cmd) const
     unsigned short crc = crc_check2(buf+2, 18+sndlen);
 	buf[20+sndlen] = crc / 256;
 	buf[21 + sndlen] = crc % 256;
-	// cout << crc << "----" << 22 + sndlen << endl;
+
 	int ret = TcpSend(buf, 22+sndlen);
 	return ret;
 	
@@ -186,7 +186,7 @@ int CClient::GetLottery(int cmd) const
     unsigned short crc = crc_check2(buf+2, 18+sndlen);
 	buf[20+sndlen] = crc / 256;
 	buf[21 + sndlen] = crc % 256;
-	// cout << crc << "----" << 22 + sndlen << endl;
+
 	int ret = TcpSend(buf, 22+sndlen);
 	return ret;
 	
@@ -238,15 +238,14 @@ void RecvThrdFunc(void *arg)
 			ret = cli->TcpRecv(buf+20, len+2, -1);  //the last data
 			crc = crc_check2(buf+2, len+18);
 			unsigned short crc2 = (unsigned char)buf[20 + len]*256 + (unsigned char)buf[21 + len];
-			// cout << crc <<"====" <<crc2 << endl;
-			// cout << 22 + len << endl;
+
 			if(crc != crc2)
 			{
 				cout<<"crc error"<<endl;
 				break ;
 			}
 			memcpy(content, buf+20, len);
-			//			cout << content << endl;
+
 			switch(cmd)
 			{
 			case 0x1001:
@@ -312,9 +311,7 @@ void CClient::VaryLoginOK(CClient* cli, char * buf)
 		{
 			cout << __LINE__<<":msgq_send error\n";
 		}
-	    loginflag = false;
-		// close(m_socket);
-		// m_socket = -1;
+
 	}
 }
 
