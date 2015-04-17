@@ -144,7 +144,7 @@ int CServer::ReadUser(const string userfile)
 	}
 }
 
-int VaryLogin(char * buf, CServer* serv, int i, int sockfd)
+int VaryLogin(char * buf, CServer* serv, int sockfd)
 {
 	map<string, string>* userpwd = &(serv->m_userpwd);
     string content = buf;
@@ -207,88 +207,84 @@ int SendLottery(char* buf, CServer* serv, int sockfd)
 }
 
 
-void RecvThrdFunc(void *arg)
-{
-	CServer *serv = (CServer*)arg;
-	int ret = 0, cmd = 0, len = 0;
-	unsigned short  crc;
-	char buf[1024];
-	char content[256];
-	do
-	{
-		while(1)
-		{
-			// if(clisock < 0)
-			// {
-			// 	continue;
-			// }
-			//paser the data  message
-			memset(buf, 0, sizeof(buf));
-			memset(content, 0, sizeof(content));
-			// ret = serv->TcpRecv(clisock, buf, 2, -1); //recv start data
-			// if((ret != 2) || ((unsigned char)buf[0] != 0xFF) || ((unsigned char)buf[1] != 0xFF))
-			// {
-			// 	break;
-			// }
-			// ret = serv->TcpRecv(clisock, buf+2, 6, -1);  //recv source addr
-			// if((ret != 6) || (strcmp(buf+2, "000000")!= 0))
-			// {
-			// 	break;
-			// }
-			// ret = serv->TcpRecv(clisock, buf+8, 6, -1); //recv destination addr
-			// if((ret != 6)||(strncmp(buf+8, "111111", 6) != 0))
-			// {
-  			// 	break;
-			// }
-			// ret = serv->TcpRecv(clisock, buf+14, 2, -1); //recv cmd
-			// if(ret != 2)
-			// {
-			// 	break;
-			// }
-			// cmd = (unsigned char)buf[14]*256 + (unsigned char)buf[15];	
-			// ret = serv->TcpRecv(clisock, buf+16, 2, -1); //recv message num
-			// ret = serv->TcpRecv(clisock, buf+18, 2, -1); //the length content
-			// len = (unsigned char)buf[18]*256 + (unsigned char)buf[19];
-			// ret = serv->TcpRecv(clisock, buf+20, len+2, -1);  //the last data
-			// crc = crc_check2(buf+2, len+18);
-			// unsigned short crc2 = (unsigned char)buf[21 + len]*256 + (unsigned char)buf[22 + len];
-			// cout << crc <<"====" <<crc2 << endl;
-			// cout << 22 + len << endl;
-			// if(crc != crc2)
-			// {
-			// 	perror("crc error");
-			// 	return ;
-			// }
-			memcpy(content, buf+20, len);
-			switch(cmd)
-			{
-			case 0x0001:
-				//	m_varylogin(content, serv);
-				break;
-			case 0x0002:
-				//	m_setlottery(content, serv);
-				break;
-			case 0x0003:
-				//	m_sendlottery(content, serv);
-				break;
-			default:
-				break;
-			}
-		}
-		// if(ret < 0)
-		// {
-		// 	close(clisock);
-		// 	clisock = -1;
-		// }
+// void RecvThrdFunc(void *arg)
+// {
+// 	CServer *serv = (CServer*)arg;
+// 	int ret = 0, cmd = 0, len = 0;
+// 	unsigned short  crc;
+// 	char buf[1024];
+// 	char content[256];
+// 	do
+// 	{
+// 		while(1)
+// 		{
+// 			// if(clisock < 0)
+// 			// {
+// 			// 	continue;
+// 			// }
+// 			//paser the data  message
+// 			memset(buf, 0, sizeof(buf));
+// 			memset(content, 0, sizeof(content));
+// 			// ret = serv->TcpRecv(clisock, buf, 2, -1); //recv start data
+// 			// if((ret != 2) || ((unsigned char)buf[0] != 0xFF) || ((unsigned char)buf[1] != 0xFF))
+// 			// {
+// 			// 	break;
+// 			// }
+// 			// ret = serv->TcpRecv(clisock, buf+2, 6, -1);  //recv source addr
+// 			// if((ret != 6) || (strcmp(buf+2, "000000")!= 0))
+// 			// {
+// 			// 	break;
+// 			// }
+// 			// ret = serv->TcpRecv(clisock, buf+8, 6, -1); //recv destination addr
+// 			// if((ret != 6)||(strncmp(buf+8, "111111", 6) != 0))
+// 			// {
+//   			// 	break;
+// 			// }
+// 			// ret = serv->TcpRecv(clisock, buf+14, 2, -1); //recv cmd
+// 			// if(ret != 2)
+// 			// {
+// 			// 	break;
+// 			// }
+// 			// cmd = (unsigned char)buf[14]*256 + (unsigned char)buf[15];	
+// 			// ret = serv->TcpRecv(clisock, buf+16, 2, -1); //recv message num
+// 			// ret = serv->TcpRecv(clisock, buf+18, 2, -1); //the length content
+// 			// len = (unsigned char)buf[18]*256 + (unsigned char)buf[19];
+// 			// ret = serv->TcpRecv(clisock, buf+20, len+2, -1);  //the last data
+// 			// crc = crc_check2(buf+2, len+18);
+// 			// unsigned short crc2 = (unsigned char)buf[21 + len]*256 + (unsigned char)buf[22 + len];
+// 			// cout << crc <<"====" <<crc2 << endl;
+// 			// cout << 22 + len << endl;
+// 			// if(crc != crc2)
+// 			// {
+// 			// 	perror("crc error");
+// 			// 	return ;
+// 			// }
+// 			memcpy(content, buf+20, len);
+// 			switch(cmd)
+// 			{
+// 			case 0x0001:
+// 				//	m_varylogin(content, serv);
+// 				break;
+// 			case 0x0002:
+// 				//	m_setlottery(content, serv);
+// 				break;
+// 			case 0x0003:
+// 				//	m_sendlottery(content, serv);
+// 				break;
+// 			default:
+// 				break;
+// 			}
+// 		}
+// 		// if(ret < 0)
+// 		// {
+// 		// 	close(clisock);
+// 		// 	clisock = -1;
+// 		// }
 	
-	} while (1);
-	cout << "CServer recv error\n";
-}
+// 	} while (1);
+// 	cout << "CServer recv error\n";
+// }
 
-void CServer::RecvThrdStart(CServer* serv)
-{
-	thread_create(&m_pid, (void*)RecvThrdFunc, serv, 1);
-}
 //得到按照一定 概率生成的vctor
 void CServer::GetPocketPool()
 {
@@ -558,13 +554,116 @@ void DeleteFd(CServer* serv, int fd)
 	epoll_ctl(serv->m_epfd, EPOLL_CTL_DEL, fd, &event);
 }
 
-void ET(CServer* serv, int num)
+void RecvThrdFunc(CServer* serv)	
 {
+	//	CServer *serv = (CServer*)arg;
+	int sockfd = serv->m_TmpSock;
 	int ret = 0, cmd = 0, len = 0;
  	unsigned short  crc;
-	char buf[1024];
-	char content[256];
+    char buf[1024], content[256];
+	for(;;)
+	{ 
+				
+		memset(buf, 0, sizeof(buf));
+		memset(content, 0, sizeof(content));
+		ret = serv->TcpRecv(sockfd, buf, 2, -1); //recv start data
+		if((ret != 2) || ((unsigned char)buf[0] != 0xFF) || ((unsigned char)buf[1] != 0xFF))
+		{
 
+			mutex_lock(&(serv->m_mutex));
+			for(map<int, string>::iterator mapite = serv->m_user.begin(); mapite != serv->m_user.end(); ++mapite)
+			{
+				if(mapite->first == sockfd)
+				{
+					cout << "the user:" << mapite->second << " leaved\n" <<endl;
+					close(sockfd);
+					serv->m_user.erase(mapite);
+					break;
+				}
+				//	cout << mapite->first << " " << mapite->second << endl;
+			}
+            mutex_unlock(&(serv->m_mutex));
+			break;
+		}
+		ret = serv->TcpRecv(sockfd, buf+2, 6, -1);  //recv source addr
+		if((ret != 6) || (strcmp(buf+2, "000000")!= 0))
+		{
+			break;
+		}
+		ret = serv->TcpRecv(sockfd, buf+8, 6, -1); //recv destination addr
+		if((ret != 6)||(strncmp(buf+8, "111111", 6) != 0))
+		{
+			break;
+		}
+		ret = serv->TcpRecv(sockfd, buf+14, 2, -1); //recv cmd
+		if(ret != 2)
+		{
+			break;
+		}
+		cmd = (unsigned char)buf[14]*256 + (unsigned char)buf[15];	
+		ret = serv->TcpRecv(sockfd, buf+16, 2, -1); //recv message num
+		ret = serv->TcpRecv(sockfd, buf+18, 2, -1); //the length content
+		len = (unsigned char)buf[18]*256 + (unsigned char)buf[19];
+		ret = serv->TcpRecv(sockfd, buf+20, len+2, -1);  //the last data
+		crc = crc_check2(buf+2, len+18);
+		unsigned short crc2 = (unsigned char)buf[21 + len]*256 + (unsigned char)buf[22 + len];
+		// cout << crc <<"====" <<crc2 << endl;
+		// cout << 22 + len << endl;
+		// if(crc != crc2)
+		// {
+		// 	perror("crc error");
+		// 	return ;
+		// }
+		if( ret < 0 )  
+		{  
+			if( ( errno == EAGAIN ) || ( errno == EWOULDBLOCK ) )  
+			{  
+				printf( "read later\n" );
+				break;
+			}
+			close(sockfd);
+			//	deletefd(serv, m_TmpSock);
+			break;
+		}  
+		else if( ret == 0 )  
+		{
+			close(sockfd);
+			//	deletefd(serv, m_TmpSock);
+			break;
+		}  
+		memcpy(content, buf+20, len);
+		switch(cmd)
+		{
+		case 0x0001:
+			VaryLogin(content, serv, sockfd);
+			break;
+		case 0x0002:
+			SetLottery(content, serv, sockfd);
+			break;
+		case 0x0003:
+			SendLottery(content, serv,sockfd);
+			break;
+		default:
+			break;
+		}
+		break;
+	}
+
+}
+
+void RecvThrd(CServer* serv)
+{
+	pthread_attr_t attr;
+	pthread_attr_init(&attr);
+	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+	pthread_create(&(serv->m_pid), &attr,(void*(*)(void*))RecvThrdFunc, (void*)serv);
+	pthread_attr_destroy(&attr);
+
+	//	thread_create(&(serv->m_pid), (void*)RecvThrdFunc, serv, 1);
+}
+
+void ET(CServer* serv, int num)
+{
     for ( int i = 0; i < num; i++ )  
     {  
         int sockfd = serv->m_events[i].data.fd;  
@@ -576,97 +675,10 @@ void ET(CServer* serv, int num)
             AddFd(serv,true);
         }  
         else if ( serv->m_events[i].events & EPOLLIN )  
-        {  
-			//           printf( "event trigger\n" );
-            for(;;)
-            { 
-				
-				memset(buf, 0, sizeof(buf));
-				memset(content, 0, sizeof(content));
-				ret = serv->TcpRecv(sockfd, buf, 2, -1); //recv start data
-				if((ret != 2) || ((unsigned char)buf[0] != 0xFF) || ((unsigned char)buf[1] != 0xFF))
-				{
-
-					for(map<int, string>::iterator mapite = serv->m_user.begin(); mapite != serv->m_user.end(); ++mapite)
-					{
-						if(mapite->first == sockfd)
-						{
-							cout << "the user:" << mapite->second << " leaved\n" <<endl;
-							close(sockfd);
-							serv->m_user.erase(mapite);
-							break;
-						}
-						//	cout << mapite->first << " " << mapite->second << endl;
-					}
-
-					break;
-				}
-				ret = serv->TcpRecv(sockfd, buf+2, 6, -1);  //recv source addr
-				if((ret != 6) || (strcmp(buf+2, "000000")!= 0))
-				{
-				    break;
-				}
-				ret = serv->TcpRecv(sockfd, buf+8, 6, -1); //recv destination addr
-				if((ret != 6)||(strncmp(buf+8, "111111", 6) != 0))
-				{
-					break;
-				}
-				ret = serv->TcpRecv(sockfd, buf+14, 2, -1); //recv cmd
-				if(ret != 2)
-				{
-				    break;
-				}
-				cmd = (unsigned char)buf[14]*256 + (unsigned char)buf[15];	
-				ret = serv->TcpRecv(sockfd, buf+16, 2, -1); //recv message num
-				ret = serv->TcpRecv(sockfd, buf+18, 2, -1); //the length content
-				len = (unsigned char)buf[18]*256 + (unsigned char)buf[19];
-				ret = serv->TcpRecv(sockfd, buf+20, len+2, -1);  //the last data
-				crc = crc_check2(buf+2, len+18);
-				unsigned short crc2 = (unsigned char)buf[21 + len]*256 + (unsigned char)buf[22 + len];
-				// cout << crc <<"====" <<crc2 << endl;
-				// cout << 22 + len << endl;
-				// if(crc != crc2)
-				// {
-				// 	perror("crc error");
-				// 	return ;
-				// }
-				if( ret < 0 )  
-				{  
-					if( ( errno == EAGAIN ) || ( errno == EWOULDBLOCK ) )  
-					{  
-						printf( "read later\n" );
-						break;
-					}
-					cout << "the user:"<<(char*)serv->m_events[i].data.ptr << " login out\n";
-					close(sockfd);
-					//	deletefd(serv, sockfd);
-					break;
-				}  
-				else if( ret == 0 )  
-				{
-					cout << "the user:"<<(char*)serv->m_events[i].data.ptr << " login out\n";
-					close(sockfd);
-					//	deletefd(serv, sockfd);
-					break;
-				}  
-				memcpy(content, buf+20, len);
-				switch(cmd)
-				{
-				case 0x0001:
-					VaryLogin(content, serv, i,sockfd);
-					break;
-				case 0x0002:
-					SetLottery(content, serv, sockfd);
-					break;
-				case 0x0003:
-					SendLottery(content, serv,sockfd);
-					break;
-				default:
-					break;
-				}
-				break;
-			}
-
+        {
+			serv->m_TmpSock = sockfd;
+			//RecvParse(serv);
+			RecvThrd(serv);
 		}
 		else
 		{
@@ -674,6 +686,6 @@ void ET(CServer* serv, int num)
 			break;
 		}
 
-	}
-	
+	}	
 }
+

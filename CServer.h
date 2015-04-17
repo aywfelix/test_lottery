@@ -36,11 +36,14 @@ public:
 	int m_epfd;
 	int m_socket;
 	int m_clisock;
+	int m_TmpSock;
 	static int sm_frame;
 	map<string, string> m_userpwd; //保存用户名和密码,密码暂用明文
 	map<int, string> m_user;
 	int m_lotterynum;
 	int m_lotteryinterval;
+	pthread_mutex_t m_mutex;
+	pthread_t m_pid;
 	CServer()
 	{
 		m_socket = socket(AF_INET, SOCK_STREAM, 0);
@@ -64,34 +67,32 @@ public:
 	int Accept(struct sockaddr_in* cin) const;
 	int ReadUser(const string userfile);
 	void GetPocketPool();
-	void RecvThrdStart(CServer* serv);
 	void Play(int* array) const;
 	int	TcpRecv(int m_socket, char *recvbuf, int len, int timeout);
 	int TcpSend(int m_socket, char *sendbuf, int len) const;
-
 	void InitEvent();
 	int ReadConf(const char* file);
-	friend void RecvThrdFunc(void *arg);
-    
+	// void RecvThrdFunc(void *arg)
 private:
 	char *m_ip;
 	int m_port;
-	vector<int> m_vec; //pocket pool
-	//char recvbuf[1024];
-	//char sendbuf[1024];
-	pthread_t m_pid;
-	pthread_mutex_t m_mutex;
-};
 
+	vector<int> m_vec; //pocket pool
+    char content[256];
+
+};
+void RecvThrdFunc(CServer* serv);
+void RecvThrd(CServer* serv);
 int LoginOK(CServer* serv, bool flag, int sockfd);
 int SetLottery(char* buf, CServer* serv, int sockfd);
-int VaryLogin(char *buf, CServer* serv ,int i, int sockfd);
+int VaryLogin(char *buf, CServer* serv ,int sockfd);
 int SetLotteryOK(CServer* serv, int sockfd);
 int Lottery2Client(int* array, CServer* serv, int sockfd);
 int PlayEnd(CServer* serv, int sockfd);
 int AddFd(CServer* serv, bool flag);
 void ET(CServer* serv, int num);
 void DeleteFd(CServer* serv, int fd);
+
 #endif
 
 

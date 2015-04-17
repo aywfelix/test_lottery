@@ -15,9 +15,7 @@ int main(int argc, char *argv[])
 	serv.InitEvent();
 	serv.ReadUser("./config/userlist");
 
-	//	serv.m_recvthrdstart(&serv); //start thread to recv client data
     cout << "CServer start to accept client...\n";
-	//	int clisock = -1;
 
     for(;;)
 	{
