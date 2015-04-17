@@ -336,8 +336,8 @@ int LoginOK(CServer *serv, bool flag, int sockfd)
     memcpy(buf+20, snd, sndlen);
 
     unsigned short crc = crc_check2(buf+2, 18+sndlen);
-	buf[21+sndlen] = crc / 256;
-	buf[22 + sndlen] = crc % 256;
+	buf[20+sndlen] = crc / 256;
+	buf[21 + sndlen] = crc % 256;
 	// cout << crc << "----" << 22 + sndlen << endl;
 	int ret = serv->TcpSend(sockfd, buf, 22+sndlen);
 	return ret;
@@ -367,8 +367,8 @@ int SetLotteryOK(CServer* serv, int sockfd)
     memcpy(buf+20, snd, sndlen);
 
     unsigned short crc = crc_check2(buf+2, 18+sndlen);
-	buf[21+sndlen] = crc / 256;
-	buf[22 + sndlen] = crc % 256;
+	buf[20+sndlen] = crc / 256;
+	buf[21 + sndlen] = crc % 256;
 	// cout << crc << "----" << 22 + sndlen << endl;
 	int ret = serv->TcpSend(sockfd, buf, 22+sndlen);
 	return ret;
@@ -404,8 +404,8 @@ int Lottery2Client(int* array, CServer* serv, int sockfd)
     memcpy(buf+20, snd, sndlen);
 
     unsigned short crc = crc_check2(buf+2, 18+sndlen);
-	buf[21+sndlen] = crc / 256;
-	buf[22 + sndlen] = crc % 256;
+	buf[20+sndlen] = crc / 256;
+	buf[21 + sndlen] = crc % 256;
 	// cout << crc << "----" << 22 + sndlen << endl;
 	int ret = serv->TcpSend(sockfd, buf, 22+sndlen);
 	return 0;
@@ -435,8 +435,8 @@ int PlayEnd(CServer *serv, int sockfd)
     memcpy(buf+20, snd, sndlen);
 
     unsigned short crc = crc_check2(buf+2, 18+sndlen);
-	buf[21+sndlen] = crc / 256;
-	buf[22 + sndlen] = crc % 256;
+	buf[20+sndlen] = crc / 256;
+	buf[21 + sndlen] = crc % 256;
 	// cout << crc << "----" << 22 + sndlen << endl;
 	int ret = serv->TcpSend(sockfd, buf, 22+sndlen);
 	return 0;
@@ -528,14 +528,14 @@ void RecvThrdFunc(void* arg)
 		len = (unsigned char)buf[18]*256 + (unsigned char)buf[19];
 		ret = serv->TcpRecv(sockfd, buf+20, len+2, -1);  //the last data
 		crc = crc_check2(buf+2, len+18);
-		unsigned short crc2 = (unsigned char)buf[21 + len]*256 + (unsigned char)buf[22 + len];
+		unsigned short crc2 = (unsigned char)buf[20 + len]*256 + (unsigned char)buf[21 + len];
 		// cout << crc <<"====" <<crc2 << endl;
 		// cout << 22 + len << endl;
-		// if(crc != crc2)
-		// {
-		// 	perror("crc error");
-		// 	return ;
-		// }
+		if(crc != crc2)
+		{
+			perror("crc error");
+			break ;
+		}
 		if( ret < 0 )  
 		{  
 			if( ( errno == EAGAIN ) || ( errno == EWOULDBLOCK ) )  
