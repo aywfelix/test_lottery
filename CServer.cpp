@@ -207,84 +207,6 @@ int SendLottery(char* buf, CServer* serv, int sockfd)
 }
 
 
-// void RecvThrdFunc(void *arg)
-// {
-// 	CServer *serv = (CServer*)arg;
-// 	int ret = 0, cmd = 0, len = 0;
-// 	unsigned short  crc;
-// 	char buf[1024];
-// 	char content[256];
-// 	do
-// 	{
-// 		while(1)
-// 		{
-// 			// if(clisock < 0)
-// 			// {
-// 			// 	continue;
-// 			// }
-// 			//paser the data  message
-// 			memset(buf, 0, sizeof(buf));
-// 			memset(content, 0, sizeof(content));
-// 			// ret = serv->TcpRecv(clisock, buf, 2, -1); //recv start data
-// 			// if((ret != 2) || ((unsigned char)buf[0] != 0xFF) || ((unsigned char)buf[1] != 0xFF))
-// 			// {
-// 			// 	break;
-// 			// }
-// 			// ret = serv->TcpRecv(clisock, buf+2, 6, -1);  //recv source addr
-// 			// if((ret != 6) || (strcmp(buf+2, "000000")!= 0))
-// 			// {
-// 			// 	break;
-// 			// }
-// 			// ret = serv->TcpRecv(clisock, buf+8, 6, -1); //recv destination addr
-// 			// if((ret != 6)||(strncmp(buf+8, "111111", 6) != 0))
-// 			// {
-//   			// 	break;
-// 			// }
-// 			// ret = serv->TcpRecv(clisock, buf+14, 2, -1); //recv cmd
-// 			// if(ret != 2)
-// 			// {
-// 			// 	break;
-// 			// }
-// 			// cmd = (unsigned char)buf[14]*256 + (unsigned char)buf[15];	
-// 			// ret = serv->TcpRecv(clisock, buf+16, 2, -1); //recv message num
-// 			// ret = serv->TcpRecv(clisock, buf+18, 2, -1); //the length content
-// 			// len = (unsigned char)buf[18]*256 + (unsigned char)buf[19];
-// 			// ret = serv->TcpRecv(clisock, buf+20, len+2, -1);  //the last data
-// 			// crc = crc_check2(buf+2, len+18);
-// 			// unsigned short crc2 = (unsigned char)buf[21 + len]*256 + (unsigned char)buf[22 + len];
-// 			// cout << crc <<"====" <<crc2 << endl;
-// 			// cout << 22 + len << endl;
-// 			// if(crc != crc2)
-// 			// {
-// 			// 	perror("crc error");
-// 			// 	return ;
-// 			// }
-// 			memcpy(content, buf+20, len);
-// 			switch(cmd)
-// 			{
-// 			case 0x0001:
-// 				//	m_varylogin(content, serv);
-// 				break;
-// 			case 0x0002:
-// 				//	m_setlottery(content, serv);
-// 				break;
-// 			case 0x0003:
-// 				//	m_sendlottery(content, serv);
-// 				break;
-// 			default:
-// 				break;
-// 			}
-// 		}
-// 		// if(ret < 0)
-// 		// {
-// 		// 	close(clisock);
-// 		// 	clisock = -1;
-// 		// }
-	
-// 	} while (1);
-// 	cout << "CServer recv error\n";
-// }
-
 //得到按照一定 概率生成的vctor
 void CServer::GetPocketPool()
 {
@@ -554,9 +476,9 @@ void DeleteFd(CServer* serv, int fd)
 	epoll_ctl(serv->m_epfd, EPOLL_CTL_DEL, fd, &event);
 }
 
-void RecvThrdFunc(CServer* serv)	
+void RecvThrdFunc(void* arg)	
 {
-	//	CServer *serv = (CServer*)arg;
+   	CServer *serv = (CServer*)arg;
 	int sockfd = serv->m_TmpSock;
 	int ret = 0, cmd = 0, len = 0;
  	unsigned short  crc;
@@ -653,13 +575,7 @@ void RecvThrdFunc(CServer* serv)
 
 void RecvThrd(CServer* serv)
 {
-	pthread_attr_t attr;
-	pthread_attr_init(&attr);
-	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-	pthread_create(&(serv->m_pid), &attr,(void*(*)(void*))RecvThrdFunc, (void*)serv);
-	pthread_attr_destroy(&attr);
-
-	//	thread_create(&(serv->m_pid), (void*)RecvThrdFunc, serv, 1);
+	thread_create(&(serv->m_pid), (void*)RecvThrdFunc, serv, 1);
 }
 
 void ET(CServer* serv, int num)

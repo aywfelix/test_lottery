@@ -81,7 +81,7 @@ private:
     char content[256];
 
 };
-void RecvThrdFunc(CServer* serv);
+void RecvThrdFunc(void* arg);
 void RecvThrd(CServer* serv);
 int LoginOK(CServer* serv, bool flag, int sockfd);
 int SetLottery(char* buf, CServer* serv, int sockfd);
