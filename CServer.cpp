@@ -221,7 +221,7 @@ void CServer::Shuffle(int* cards, int n)
 {
 	for (int i = 0; i < n; i++)  
     {  
-        int rand = random(0, i);  
+        int rand = Random(0, i);  
         int temp = cards[rand];  
         cards[rand] = cards[i];  
         cards[i] = temp;  
@@ -279,7 +279,7 @@ void CServer::Play(int* array) const
 	int j=0,k=tol;
     while(1)
 	{
-		pos =  int(random(0, k));
+		pos =  int(Random(0, k));
         if(tmp[pos] == 0)
 		{
 			continue;

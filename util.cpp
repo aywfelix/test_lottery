@@ -1,5 +1,5 @@
 #include "util.h"
-
+#include "Random.h"
 //读取配置文件
 /********************************* 
  * Function Name:
@@ -59,19 +59,24 @@ extern string readconfig(const string filepath, const string section, const stri
  * Return value: 在min max获取随机数
  *
  **********************************/
-extern int genrandom(int min, int max)
+extern int genrandom(double min, double max)
 {
 	if(min >= max)
 		return -1;
-	int t = (rand()%(max-min) + 1) +min;
+	//	int t = min + rand()%(max-min + 1.0);
+	// int t = min + mtirand()%(max-min + 1.0);
+	int t;
 	return t;
 }
-
-extern double random(double start, double end)
-{
-    return start+(end-start)*rand()/(RAND_MAX + 1.0);
-}
-
+//[start, end)
+// extern unsigned int random(double start, double end)
+// {
+//     return start+(end-start)*mtirand()/(RAND_MAX + 1.0);
+// }
+extern int Random(int low, int high)  
+{  
+    return low + mtirand() % (high - low + 1);  
+}  
 extern int thread_create(pthread_t *threadid, void *pfunction, void *arg, int flag)
 {
 	int ret = 0;

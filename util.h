@@ -44,8 +44,9 @@ using std::string;
 
 //Function
 extern string readconfig(const string filepath, const string section, const string key, string value);
-extern int genrandom(int min, int max);
-extern double random(double start, double end);
+extern int genrandom(double min, double max);
+// extern unsigned int random(double start, double end);
+extern int Random(int low, int high);
 extern int thread_create(pthread_t *threadid, void* pfunction, void *arg, int flag);
 extern void thread_exit(void);
 extern int mutex_init(pthread_mutex_t *mutex);
@@ -70,14 +71,3 @@ extern int checkeprogram(const char* shellstr, const char* str);
 void char2hex(char* str, char* hex);
 void swap(int &a, int &b);
 #endif
-
-
-
-
-
-
-
-
-
-
-

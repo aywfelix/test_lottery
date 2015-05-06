@@ -30,13 +30,13 @@ int main(int argc, char *argv[])
     
     // for(int icnt = 0; icnt != 12; ++icnt)
     //     cout << icnt <<"\t"<< double(a[icnt])/Gen_max*100 << "%" << endl;
-	int t =0;
-	srand(unsigned(time(NULL)));
-    for(int i =0 ; i< 10; i++)
-	{
-		t = int(random(1,13));
-		cout << t << " ";
-	}
-	cout <<endl;
+	// int t =0;
+	// srand(unsigned(time(NULL)));
+    // for(int i =0 ; i< 10; i++)
+	// {
+	// 	t = int(random(1,13));
+	// 	cout << t << " ";
+	// }
+	// cout <<endl;
     return 0;
 }
