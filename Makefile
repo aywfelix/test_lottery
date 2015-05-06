@@ -1,7 +1,7 @@
 CC = gcc
 CXX = g++
-CFLAGS = -g -lstdc++ -Wall -o2
-LDFLAGS = -lpthread -levent
+CFLAGS = -g -lstdc++ -Wall -o2 -pg
+LDFLAGS = -lpthread -levent 
 
 all: test_client test_server test
 
@@ -15,7 +15,7 @@ test: util.o test.o
 		$(CXX) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 .c.o:
-		$(CXX) $(CFLAGS) -c $< 
+		$(CXX) $(CFLAGS) -c $< -pg 
 
 
 .PHONY : clean

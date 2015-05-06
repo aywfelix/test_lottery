@@ -67,4 +67,17 @@ extern int msgq_free(int msqid);
 extern int msgq_stat(int msqid,  struct msqid_ds *info);
 extern int setnonblock(int fd);
 extern int checkeprogram(const char* shellstr, const char* str);
+void char2hex(char* str, char* hex);
+void swap(int &a, int &b);
 #endif
+
+
+
+
+
+
+
+
+
+
+

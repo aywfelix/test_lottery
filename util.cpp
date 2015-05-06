@@ -310,3 +310,17 @@ extern int checkeprogram(const char* shellstr, const char* str)
 	}
 	return 0;
 }
+
+void char2hex(char* str, char* hex)
+{
+	int tmp;
+	sscanf(str, "%d", &tmp);
+	sprintf(hex, "%x", tmp);
+}
+
+void swap(int &a, int &b)
+{
+	int t = a;
+	a = b;
+	b = t;
+}

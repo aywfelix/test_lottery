@@ -3,7 +3,8 @@
 
 //int clisock = -1;
 int CServer::sm_frame = 0;
-
+int CServer::tol = 0;
+int *b;
 int CServer::ReadConf(const char* file)
 {
 	string sip = readconfig(file, "net", "servip", "127.0.0.1");
@@ -196,9 +197,9 @@ int SendLottery(char* buf, CServer* serv, int sockfd)
 		serv->Play(array);
 	  	sleep(serv->m_lotteryinterval); //set the time interval about the game
 		//show in CServer terminal
-		for(int i=0; i< 4;++i)
-			cout << array[i] << " ";
-		cout << endl;
+		// for(int i=0; i< 4;++i)
+		// 	cout << array[i] << " ";
+		// cout << endl;
 		{
 			Lottery2Client(array, serv, sockfd);
 		}
@@ -206,99 +207,112 @@ int SendLottery(char* buf, CServer* serv, int sockfd)
 	PlayEnd(serv, sockfd);
 }
 
-
+void CServer::SetSrand()
+{
+	unsigned int seedVal;  
+    struct timeb timeBuf;  
+    ftime(&timeBuf);  
+    seedVal=((((unsigned int)timeBuf.time & 0xFFFF)+  
+              (unsigned int)timeBuf.millitm)^  
+             (unsigned int)timeBuf.millitm);  
+    srand((unsigned int)seedVal);  
+}
+void CServer::Shuffle(int* cards, int n)
+{
+	for (int i = 0; i < n; i++)  
+    {  
+        int rand = random(0, i);  
+        int temp = cards[rand];  
+        cards[rand] = cards[i];  
+        cards[i] = temp;  
+    }  
+}
 //得到按照一定 概率生成的vctor
 void CServer::GetPocketPool()
 {
-	int a1[9] = {1,1,1,1,1,1,1,1,1};
-	int a2[12] = {2,2,2,2,2,2,2,2,2,2,2,2};
-	int a3[5] = {3,3,3,3,3};
-	int a4[4] = {4,4,4,4};
-	int a5[8] = {5,5,5,5,5,5,5,5};
-	int a6[15] = {6,6,6,6,6,6,6,6,6,6,6,6,6,6,6};
-	int a7[7] = {7,7,7,7,7,7,7};
-	int a8[13] = {8,8,8,8,8,8,8,8,8,8,8,8,8};
-	int a9[6] = {9,9,9,9,9,9};
-	int a10[3] = {10,10,10};
-	int a11[10] = {11,11,11,11,11,11,11,11,11,11};
-	int a12[8] = {12,12,12,12,12,12,12,12};
 
-	vector<int> vvec(100,0);
-	memcpy(&vvec[0], &a1[0], 9*sizeof(int));
-   	memcpy(&vvec[9], &a2[0], 12*sizeof(int));
-	memcpy(&vvec[21], &a3[0], 5*sizeof(int));
-	memcpy(&vvec[26], &a4[0], 4*sizeof(int));
-	memcpy(&vvec[30], &a5[0], 8*sizeof(int));
-	memcpy(&vvec[38], &a6[0], 15*sizeof(int));
-	memcpy(&vvec[53], &a7[0], 7*sizeof(int));
-	memcpy(&vvec[60], &a8[0], 13*sizeof(int));
-	memcpy(&vvec[73], &a9[0], 6*sizeof(int));
-	memcpy(&vvec[79], &a10[0], 3*sizeof(int));
-	memcpy(&vvec[82], &a11[0], 10*sizeof(int));
-	memcpy(&vvec[92], &a12[0], 8*sizeof(int));
-
-    // vvec.assign(&a1[0], &a1[9]);
-	// for(int i=0;i != 100; ++i)
-	// {
-	// 	cout << vvec[i] << " ";
-	// }
-	// cout<<"\n"<< vvec.size();
-	// cout<<"----------"<<endl;
-	int t=0, tmp, p;
-	srand(unsigned(time(NULL)));
-	for(int i = 0; i< 100; ++i)
+    int a[12],sum=0,tmp=1;
+	a[0] = 25;
+	a[1] = 20;
+	a[2] = 14;
+	a[3] = 12;
+	a[4] = 10;
+	a[5] = 9;
+	a[6] = 8;
+	a[7] = 6;
+	a[8] = 5;
+    a[9] = 4;
+	a[10] = 3;
+	a[11] = 2;
+    for(int i=0;i<12;++i)
+		tol += a[i];
+    b = new int[tol];
+	for(int i=0;i<tol;++i)
 	{
-		t = int(random(0, 101));
-		if(m_vec[t] == 0)
+		b[i] = 0;
+	}
+	for(int i=0;i<12;++i)
+	{
+		sum += a[i];
+		for(int j=sum-1;j>=0;--j)
 		{
-			m_vec[t] = vvec[i];
+			if(b[j]>0)break;
+			b[j] = tmp;
 		}
-		else
-		{
-			p = t;
-			tmp = vvec[i];
-			while(++t && t < 100)
-			{
-				if(m_vec[t] == 0)
-				{
-					m_vec[t] = tmp;
-					break;
-				}
-				else
-					continue;
-						
-			}
-			while(t == 100 && (--p >= 0))
-			{
-				if(m_vec[p] == 0)
-				{
-					m_vec[p] = tmp;
-					break;
-				}
-				else
-					continue;
-						
-			}
-		}
-		
+		++tmp;
 	}
 
+    SetSrand();
+	Shuffle(b, tol);
+	for(int i=0;i<tol;i++)
+		cout << b[i] << " ";
+	cout << endl;
 }
 
 void CServer::Play(int* array) const 
 {
-	//get four number from vector by random
-	int pos;
-	for(int i=0;i < 4;++i)
-	{
-		pos = int(random(0, 101));
-		while(m_vec[pos] ==0) //这个bug以后在该
-		{
-			pos = int(random(0, 101));
-		}
-		array[i] = m_vec[pos];
-	}
 
+	int pos;
+	int tmp[tol];
+    for(int i=0;i<tol;++i)
+		tmp[i] = b[i];
+	int j=0,k=tol;
+    while(1)
+	{
+		pos =  int(random(0, k));
+        if(tmp[pos] == 0)
+		{
+			continue;
+		}
+		if(j==4) break;
+		array[j] = tmp[pos];  
+		for(int i=0;i<k;++i)  
+		{  
+			if(array[j] == tmp[i])  
+				tmp[i] = 0;  
+		}
+		int p;
+		for(int i=0;i<k;++i)
+		{
+			if(tmp[i] == 0)
+			{
+				p = i;
+				break;
+			}
+		}
+		int t=p;
+		while(p<k)
+		{
+			if(tmp[p] != 0)
+			{
+				swap(tmp[t], tmp[p]);
+				++t; 
+			}			
+			++p;			
+		}
+		k = t;
+        j++;
+	}	
 }
 
 int LoginOK(CServer *serv, bool flag, int sockfd) 
@@ -379,7 +393,7 @@ int Lottery2Client(int* array, CServer* serv, int sockfd)
 		s += num2str(array[i])+"|";
 	}
 	s += string(lib_time_now(outtime, 1));
-	cout << "ssss====" << s << endl;
+	// cout << "ssss====" << s << endl;
 	char *snd = const_cast<char*>(s.c_str());
 	int sndlen = strlen(snd);
 	memset(buf, 0, 256);

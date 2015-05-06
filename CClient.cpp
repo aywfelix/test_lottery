@@ -336,7 +336,7 @@ void CClient::VarySetLotOK(CClient* cli, char * buf)
 
 void CClient::VaryGetLottery(char *buf) const
 {
-   	cout << buf << endl;
+	//   	cout << buf << endl;
 	string s = buf;
 	ofstream outfile("./record", ofstream::out|ofstream::app);
 	if(!outfile)

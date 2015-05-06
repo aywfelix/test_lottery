@@ -24,7 +24,7 @@
 #include <map>
 #endif
 #include <sys/epoll.h>
-
+#include <sys/timeb.h>
 const int MAX_NUM = 200;
 const int BACKLOG = 10;
 //默认服务器端 ip 127.0.0.1 port 9999
@@ -38,6 +38,7 @@ public:
 	int m_clisock;
 	int m_TmpSock;
 	static int sm_frame;
+	static int tol;
 	map<string, string> m_userpwd; //保存用户名和密码,密码暂用明文
 	map<int, string> m_user;
 	int m_lotterynum;
@@ -55,6 +56,8 @@ public:
 
 		mutex_init(&m_mutex);
 		m_vec.resize(100);
+		// for(int i=0;i<118;i++)
+		// 	b[i]=0;
 	}
 	~CServer()
 	{
@@ -73,12 +76,15 @@ public:
 	void InitEvent();
 	int ReadConf(const char* file);
 	// void RecvThrdFunc(void *arg)
+	void SetSrand();
+	void Shuffle(int* cards, int n);
 private:
 	char *m_ip;
 	int m_port;
 
 	vector<int> m_vec; //pocket pool
     char content[256];
+	//	int b[118];
 
 };
 void RecvThrdFunc(void* arg);
@@ -93,6 +99,7 @@ int AddFd(CServer* serv, bool flag);
 void ET(CServer* serv, int num);
 void DeleteFd(CServer* serv, int fd);
 int RecvDeal(CServer* serv, int sockfd, char* buf, int& cmd, int& len);
+
 #endif
 
 
