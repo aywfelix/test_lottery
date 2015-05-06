@@ -1,5 +1,5 @@
 #include "util.h"
-#include "Random.h"
+
 //读取配置文件
 /********************************* 
  * Function Name:

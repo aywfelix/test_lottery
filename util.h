@@ -38,7 +38,7 @@
 #include <errno.h>
 #include <signal.h>
 #include <fcntl.h>
-
+#include "Random.h"
 using namespace std;
 using std::string;
 

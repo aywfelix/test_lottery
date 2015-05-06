@@ -215,7 +215,7 @@ void CServer::SetSrand()
     seedVal=((((unsigned int)timeBuf.time & 0xFFFF)+  
               (unsigned int)timeBuf.millitm)^  
              (unsigned int)timeBuf.millitm);  
-    srand((unsigned int)seedVal);  
+    mtsrand((unsigned int)seedVal);  
 }
 void CServer::Shuffle(int* cards, int n)
 {
